@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Data.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Data.Models;
+namespace Data.Contexts;
 
 public partial class BlazorBankContext : DbContext
 {
