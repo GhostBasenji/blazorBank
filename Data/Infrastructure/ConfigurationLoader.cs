@@ -8,7 +8,7 @@ namespace Data.Infrastructure
         {
             return new ConfigurationBuilder()
                 .SetBasePath(AppContext.BaseDirectory)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddJsonFile("appsettings.json", optional: false)
                 .Build();
         }
     }
