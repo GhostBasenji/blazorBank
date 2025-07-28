@@ -1,0 +1,39 @@
+﻿@page "/"
+
+@layout GuestLayout
+
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components
+
+<h1 class="text-center mt-5">Добро пожаловать в <span class="text-primary">Bank Blazor</span></h1>
+
+<div class="text-center mt-4">
+    <button class="btn btn-outline-primary btn-lg" @onclick="ShowLogin">Войти</button>
+</div>
+
+@if (showLogin)
+{
+    <div class="modal show d-block" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Вход</h5>
+                    <button type="button" class="btn-close" @onclick="CloseLogin"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Здесь будет форма входа -->
+                    <p>Форма входа (будет позже)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    private bool showLogin = false;
+
+    private void ShowLogin() => showLogin = true;
+    private void CloseLogin() => showLogin = false;
+}
