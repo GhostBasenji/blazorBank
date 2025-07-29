@@ -1,23 +1,24 @@
-﻿//using Data.Contexts;
-//using Data.Models;
-//using Microsoft.EntityFrameworkCore;
+﻿using Data.Contexts;
+using Data.Models;
+using Microsoft.EntityFrameworkCore;
 
-//namespace Data.Services
-//{
-//    public class ClientAuthService
-//    {
-//        private readonly BlazorBankContext _db;
+namespace Data.Services;
 
-//        public ClientAuthService(BlazorBankContext db)
-//        {
-//            _db = db;
-//        }
+public class ClientAuthService : IClientAuthService
+{
+    private readonly BlazorBankContext _context;
 
-//        public async Task<Client?> AuthenticateAsync(string email, string password)
-//        {
-//            return await _db.Clients
-//                .FirstOrDefaultAsync(c => c.Email == email && c.PasswordHash == password);
-//        }
-//    }
-//}
+    public ClientAuthService(BlazorBankContext context)
+    {
+        _context = context;
+    }
 
+    public async Task<Client?> AuthenticateAsync(string loginOrEmail, string password)
+    {
+        // На этом этапе пароль не хэшируется — просто для тестов
+        return await _context.Clients
+            .FirstOrDefaultAsync(c =>
+                (c.Username == loginOrEmail || c.Email == loginOrEmail)
+                && c.PasswordHash == password);
+    }
+}

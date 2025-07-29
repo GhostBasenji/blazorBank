@@ -1,7 +1,8 @@
 using Client.Components;
 using Data.Contexts;
-using Microsoft.EntityFrameworkCore;
 using Data.Infrastructure;
+using Data.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,7 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddDataServices(builder.Configuration);
+builder.Services.AddScoped<ClientAuthService>();
 
 var app = builder.Build();
 
