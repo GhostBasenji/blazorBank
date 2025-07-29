@@ -2,18 +2,18 @@
 @inject ClientAuthService AuthService
 @inject NavigationManager Nav
 
-<div class="card shadow-sm p-4" style="width: 400px;">
-    <h4 class="mb-3">Вход в систему</h4>
+<div class="card p-4" style="width: 400px;">
+    <h4 class="mb-3 text-center">Sign In</h4>
 
     <div class="mb-3">
-        <input type="text" class="form-control" placeholder="Логин или Email" @bind="login" />
+        <input type="text" class="form-control" placeholder="Login or email" @bind="login" />
     </div>
     <div class="mb-3">
-        <input type="password" class="form-control" placeholder="Пароль" @bind="password" />
+        <input type="password" class="form-control" placeholder="Password" @bind="password" />
     </div>
     <div class="d-flex justify-content-between">
-        <button class="btn btn-success" @onclick="HandleLogin">Войти</button>
-        <button class="btn btn-outline-secondary" @onclick="OnCancel">Отмена</button>
+        <button class="btn btn-primary" @onclick="HandleLogin">Sign In</button>
+        <button class="btn btn-secondary" @onclick="OnCancel">Cancel</button>
     </div>
 
     @if (!string.IsNullOrEmpty(errorMessage))
@@ -35,12 +35,11 @@
         if (client != null)
         {
             errorMessage = null;
-
             Nav.NavigateTo("/account");
         }
         else
         {
-            errorMessage = "Неверный логин или пароль.";
+            errorMessage = "Invalid login or password.";
         }
     }
 }

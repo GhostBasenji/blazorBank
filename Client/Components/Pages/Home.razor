@@ -7,18 +7,22 @@
 @using Client.Components.Pages
 @using Microsoft.AspNetCore.Components
 
-<h1 class="text-center mt-5">Добро пожаловать в <span class="text-primary">Bank Blazor</span></h1>
+<div class="text-center mt-5">
+    <h1>Welcome to <span class="text-primary">Bank Blazor</span></h1>
 
-<div class="text-center mt-4">
-    <button class="btn btn-outline-primary btn-lg" @onclick="ShowLogin">Войти</button>
+    @if (!showLogin)
+    {
+        <div class="mt-4">
+            <button class="btn btn-primary btn-lg" @onclick="ShowLogin">Sign In</button>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex justify-content-center mt-4">
+            <LoginForm OnCancel="CloseLogin" />
+        </div>
+    }
 </div>
-
-@if (showLogin)
-{
-    <div class="d-flex justify-content-center mt-4">
-        <LoginForm OnCancel="CloseLogin" />
-    </div>
-}
 
 @code {
     private bool showLogin = false;
