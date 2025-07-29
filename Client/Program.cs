@@ -1,10 +1,15 @@
 using Client.Components;
+using Data.Contexts;
+using Microsoft.EntityFrameworkCore;
+using Data.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddDataServices(builder.Configuration);
 
 var app = builder.Build();
 

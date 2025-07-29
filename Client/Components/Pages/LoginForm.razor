@@ -1,0 +1,45 @@
+﻿@* @using Data.Services 
+@inject ClientAuthService AuthService *@
+
+<div class="card shadow-sm p-4" style="width: 400px;">
+    <h4 class="mb-3">Вход в систему</h4>
+
+    <div class="mb-3">
+        <input type="email" class="form-control" placeholder="Email" @bind="email" />
+    </div>
+    <div class="mb-3">
+        <input type="password" class="form-control" placeholder="Пароль" @bind="password" />
+    </div>
+    <div class="d-flex justify-content-between">
+        @* <button class="btn btn-success" @onclick="HandleLogin">Войти</button> *@
+        <button class="btn btn-outline-secondary" @onclick="OnCancel">Отмена</button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="text-danger mt-3">@errorMessage</div>
+    }
+</div>
+
+@code {
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private string email = string.Empty;
+    private string password = string.Empty;
+    private string? errorMessage;
+
+    // private async Task HandleLogin()
+    // {
+    //     var user = await AuthService.AuthenticateAsync(email, password);
+    //     if (user != null)
+    //     {
+    //         // Можно сохранить состояние, перейти на другую страницу и т.д.
+    //         errorMessage = null;
+    //         Console.WriteLine($"Успешный вход: {user.FirstName} {user.LastName}");
+    //     }
+    //     else
+    //     {
+    //         errorMessage = "Неверный email или пароль.";
+    //     }
+    // }
+}

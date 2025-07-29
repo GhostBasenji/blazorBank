@@ -19,6 +19,8 @@ public partial class Client
 
     public DateTime? CreatedAt { get; set; }
 
+    public string Username { get; set; } = null!;
+
     public virtual ICollection<Account> Accounts { get; set; } = new List<Account>();
 
     public virtual ICollection<ClientLogin> ClientLogins { get; set; } = new List<ClientLogin>();

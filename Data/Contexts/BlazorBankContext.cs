@@ -1,4 +1,6 @@
-﻿using Data.Models;
+﻿using System;
+using System.Collections.Generic;
+using Data.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Data.Contexts;
@@ -40,7 +42,7 @@ public partial class BlazorBankContext : DbContext
     {
         modelBuilder.Entity<Account>(entity =>
         {
-            entity.HasKey(e => e.AccountId).HasName("PK__Accounts__349DA5863C5A1EC2");
+            entity.HasKey(e => e.AccountId).HasName("PK__Accounts__349DA58690414907");
 
             entity.HasIndex(e => e.AccountNumber, "IX_Accounts_AccountNumber");
 
@@ -52,7 +54,7 @@ public partial class BlazorBankContext : DbContext
 
             entity.HasIndex(e => e.StatusId, "IX_Accounts_StatusID");
 
-            entity.HasIndex(e => e.AccountNumber, "UQ__Accounts__BE2ACD6FFBB876AB").IsUnique();
+            entity.HasIndex(e => e.AccountNumber, "UQ__Accounts__BE2ACD6F9A622514").IsUnique();
 
             entity.Property(e => e.AccountId).HasColumnName("AccountID");
             entity.Property(e => e.AccountNumber).HasMaxLength(20);
@@ -70,24 +72,24 @@ public partial class BlazorBankContext : DbContext
             entity.HasOne(d => d.Client).WithMany(p => p.Accounts)
                 .HasForeignKey(d => d.ClientId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Accounts__Client__3B75D760");
+                .HasConstraintName("FK__Accounts__Client__403A8C7D");
 
             entity.HasOne(d => d.Currency).WithMany(p => p.Accounts)
                 .HasForeignKey(d => d.CurrencyId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Accounts__Curren__3C69FB99");
+                .HasConstraintName("FK__Accounts__Curren__412EB0B6");
 
             entity.HasOne(d => d.Status).WithMany(p => p.Accounts)
                 .HasForeignKey(d => d.StatusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Accounts__Status__3D5E1FD2");
+                .HasConstraintName("FK__Accounts__Status__4222D4EF");
         });
 
         modelBuilder.Entity<AccountStatus>(entity =>
         {
-            entity.HasKey(e => e.StatusId).HasName("PK__AccountS__C8EE2043837A91AC");
+            entity.HasKey(e => e.StatusId).HasName("PK__AccountS__C8EE2043505EC1A8");
 
-            entity.HasIndex(e => e.StatusName, "UQ__AccountS__05E7698AFBE375B5").IsUnique();
+            entity.HasIndex(e => e.StatusName, "UQ__AccountS__05E7698A9A205CF1").IsUnique();
 
             entity.Property(e => e.StatusId).HasColumnName("StatusID");
             entity.Property(e => e.StatusName).HasMaxLength(50);
@@ -95,13 +97,15 @@ public partial class BlazorBankContext : DbContext
 
         modelBuilder.Entity<Client>(entity =>
         {
-            entity.HasKey(e => e.ClientId).HasName("PK__Clients__E67E1A041609B0FB");
+            entity.HasKey(e => e.ClientId).HasName("PK__Clients__E67E1A04DD96546F");
 
             entity.HasIndex(e => e.Email, "IX_Clients_Email");
 
             entity.HasIndex(e => e.PasswordHash, "IX_Clients_PasswordHash");
 
-            entity.HasIndex(e => e.Email, "UQ__Clients__A9D10534DF6773DF").IsUnique();
+            entity.HasIndex(e => e.Username, "UQ_Clients_Username").IsUnique();
+
+            entity.HasIndex(e => e.Email, "UQ__Clients__A9D1053445AF7A54").IsUnique();
 
             entity.Property(e => e.ClientId).HasColumnName("ClientID");
             entity.Property(e => e.CreatedAt)
@@ -112,11 +116,12 @@ public partial class BlazorBankContext : DbContext
             entity.Property(e => e.LastName).HasMaxLength(50);
             entity.Property(e => e.PasswordHash).HasMaxLength(256);
             entity.Property(e => e.Phone).HasMaxLength(20);
+            entity.Property(e => e.Username).HasMaxLength(50);
         });
 
         modelBuilder.Entity<ClientLogin>(entity =>
         {
-            entity.HasKey(e => e.LoginId).HasName("PK__ClientLo__4DDA2838F262AA46");
+            entity.HasKey(e => e.LoginId).HasName("PK__ClientLo__4DDA2838FE43494C");
 
             entity.HasIndex(e => e.ClientId, "IX_ClientLogins_ClientID");
 
@@ -133,14 +138,14 @@ public partial class BlazorBankContext : DbContext
             entity.HasOne(d => d.Client).WithMany(p => p.ClientLogins)
                 .HasForeignKey(d => d.ClientId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ClientLog__Clien__30F848ED");
+                .HasConstraintName("FK__ClientLog__Clien__4316F928");
         });
 
         modelBuilder.Entity<Currency>(entity =>
         {
-            entity.HasKey(e => e.CurrencyId).HasName("PK__Currenci__14470B10BF89B244");
+            entity.HasKey(e => e.CurrencyId).HasName("PK__Currenci__14470B10C6D2D189");
 
-            entity.HasIndex(e => e.CurrencyCode, "UQ__Currenci__408426BFA3C0A5F0").IsUnique();
+            entity.HasIndex(e => e.CurrencyCode, "UQ__Currenci__408426BF993BF6C5").IsUnique();
 
             entity.Property(e => e.CurrencyId).HasColumnName("CurrencyID");
             entity.Property(e => e.CurrencyCode).HasMaxLength(3);
@@ -149,11 +154,11 @@ public partial class BlazorBankContext : DbContext
 
         modelBuilder.Entity<Employee>(entity =>
         {
-            entity.HasKey(e => e.EmployeeId).HasName("PK__Employee__7AD04FF1BB560912");
+            entity.HasKey(e => e.EmployeeId).HasName("PK__Employee__7AD04FF1770897F7");
 
             entity.HasIndex(e => e.Email, "IX_Employees_Email");
 
-            entity.HasIndex(e => e.Email, "UQ__Employee__A9D10534DC48BED5").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Employee__A9D10534BE912D85").IsUnique();
 
             entity.Property(e => e.EmployeeId).HasColumnName("EmployeeID");
             entity.Property(e => e.Email).HasMaxLength(100);
@@ -168,7 +173,7 @@ public partial class BlazorBankContext : DbContext
 
         modelBuilder.Entity<EmployeeAction>(entity =>
         {
-            entity.HasKey(e => e.ActionId).HasName("PK__Employee__FFE3F4B99F2CB4D0");
+            entity.HasKey(e => e.ActionId).HasName("PK__Employee__FFE3F4B929BC6A09");
 
             entity.HasIndex(e => e.ActionDate, "IX_EmployeeActions_ActionDate");
 
@@ -187,12 +192,12 @@ public partial class BlazorBankContext : DbContext
             entity.HasOne(d => d.Employee).WithMany(p => p.EmployeeActions)
                 .HasForeignKey(d => d.EmployeeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__EmployeeA__Emplo__45F365D3");
+                .HasConstraintName("FK__EmployeeA__Emplo__440B1D61");
         });
 
         modelBuilder.Entity<Transaction>(entity =>
         {
-            entity.HasKey(e => e.TransactionId).HasName("PK__Transact__55433A4B6F4D9698");
+            entity.HasKey(e => e.TransactionId).HasName("PK__Transact__55433A4B27783051");
 
             entity.HasIndex(e => e.AccountId, "IX_Transactions_AccountID");
 
@@ -212,17 +217,17 @@ public partial class BlazorBankContext : DbContext
             entity.HasOne(d => d.Account).WithMany(p => p.Transactions)
                 .HasForeignKey(d => d.AccountId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Transacti__Accou__412EB0B6");
+                .HasConstraintName("FK__Transacti__Accou__44FF419A");
 
             entity.HasOne(d => d.TransactionType).WithMany(p => p.Transactions)
                 .HasForeignKey(d => d.TransactionTypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Transacti__Trans__4222D4EF");
+                .HasConstraintName("FK__Transacti__Trans__45F365D3");
         });
 
         modelBuilder.Entity<TransactionType>(entity =>
         {
-            entity.HasKey(e => e.TransactionTypeId).HasName("PK__Transact__20266CEB0F71B000");
+            entity.HasKey(e => e.TransactionTypeId).HasName("PK__Transact__20266CEB987F6569");
 
             entity.Property(e => e.TransactionTypeId).HasColumnName("TransactionTypeID");
             entity.Property(e => e.TypeName).HasMaxLength(50);
