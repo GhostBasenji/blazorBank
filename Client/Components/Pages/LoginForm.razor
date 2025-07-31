@@ -1,6 +1,11 @@
-﻿@using Data.Services
-@inject ClientAuthService AuthService
+﻿@using Client.Services
+@using Data.Services
+@inject Data.Services.IClientAuthService AuthService
+@inject CurrentClientService CurrentClient
 @inject NavigationManager Nav
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+
 
 <div class="card p-4" style="width: 400px;">
     <h4 class="mb-3 text-center">Sign In</h4>
@@ -32,8 +37,10 @@
     private async Task HandleLogin()
     {
         var client = await AuthService.AuthenticateAsync(login, password);
-        if (client != null)
+
+        if (client is not null)
         {
+            await CurrentClient.SetClientAsync(client);
             errorMessage = null;
             Nav.NavigateTo("/account");
         }
@@ -42,4 +49,5 @@
             errorMessage = "Invalid login or password.";
         }
     }
+
 }

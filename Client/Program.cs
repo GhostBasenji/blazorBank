@@ -1,10 +1,21 @@
 using Client.Components;
+using Client.Services;
 using Data.Contexts;
+using Data.DTOs;
 using Data.Infrastructure;
+using Data.Repositories;
 using Data.Services;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<ProtectedSessionStorage>();
+builder.Services.AddScoped<CurrentClientService>();
+
+
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

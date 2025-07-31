@@ -13,7 +13,7 @@ public partial class Account
 
     public int StatusId { get; set; }
 
-    public string AccountNumber { get; set; } = null!;
+    public string? AccountNumber { get; set; }
 
     public decimal? Balance { get; set; }
 
