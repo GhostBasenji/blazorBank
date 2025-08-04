@@ -5,5 +5,5 @@ namespace Data.Repositories;
 
 public interface IAccountRepository
 {
-    Task<AccountInfoDto?> GetAccountInfoByClientIdAsync(int clientId);
+    Task<List<AccountInfoDto>> GetAccountsByClientIdAsync(int clientId); 
 }

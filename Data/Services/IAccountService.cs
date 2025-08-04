@@ -5,5 +5,5 @@ namespace Data.Services;
 
 public interface IAccountService
 {
-    Task<AccountInfoDto?> GetAccountInfoByClientIdAsync(int clientId);
+    Task<List<AccountInfoDto>> GetAccountsByClientIdAsync(int clientId);
 }

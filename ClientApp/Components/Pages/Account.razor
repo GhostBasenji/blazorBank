@@ -2,13 +2,12 @@
 @using Data.DTOs
 @using Data.Models
 @using ClientApp.Services
-@inject ClientApp.Services.CurrentClientService CurrentClientService
-@inject Data.Services.IAccountService AccountService
+@inject CurrentClientService CurrentClientService
+@inject IAccountService AccountService
 @inject NavigationManager Nav
 @rendermode InteractiveServer
 
 @using ClientModel = Data.Models.Client
-
 
 <h3 class="mb-4">Account Information</h3>
 
@@ -16,14 +15,14 @@
 {
     <p>Loading account details...</p>
 }
-else if (accountInfo == null)
+else if (accounts is null || accounts.Count == 0)
 {
     <p>No account information found.</p>
 }
 else
 {
     <table class="table table-bordered table-hover table-striped text-center shadow-sm rounded" style="max-width: 100%; overflow: hidden;">
-        <thead class="table-primary text-white">
+        <thead class="table-light">
             <tr>
                 <th>Account Number</th>
                 <th>Full Name</th>
@@ -34,28 +33,30 @@ else
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>@(accountInfo?.AccountNumber ?? "-")</td>
-                <td>@(accountInfo?.FullName ?? "-")</td>
-                <td>@(accountInfo?.Currency ?? "-")</td>
-                <td>@(accountInfo?.Status ?? "-")</td>
-                <td>@(accountInfo?.Balance?.ToString("C") ?? "-")</td>
-                <td>@(accountInfo?.CreatedAt?.ToString("yyyy-MM-dd") ?? "-")</td>
-            </tr>
+            @foreach (var acc in accounts)
+            {
+                <tr>
+                    <td>@acc.AccountNumber</td>
+                    <td>@acc.FullName</td>
+                    <td>@acc.Currency</td>
+                    <td>@acc.Status</td>
+                    <td>@acc.Balance?.ToString("C")</td>
+                    <td>@acc.CreatedAt?.ToString("yyyy-MM-dd")</td>
+                </tr>
+            }
         </tbody>
     </table>
 }
 
 @code {
-    private AccountInfoDto? accountInfo;
+    private List<AccountInfoDto>? accounts;
     private bool isLoading = true;
-    private ClientModel? client;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            client = await CurrentClientService.GetCurrentClientAsync();
+            var client = await CurrentClientService.GetCurrentClientAsync();
 
             if (client == null)
             {
@@ -63,11 +64,11 @@ else
                 return;
             }
 
-            accountInfo = await AccountService.GetAccountInfoByClientIdAsync(client.ClientId);
+            accounts = await AccountService.GetAccountsByClientIdAsync(client.ClientId);
         }
         catch
         {
-            accountInfo = null;
+            accounts = null;
         }
         finally
         {
@@ -75,4 +76,3 @@ else
         }
     }
 }
-

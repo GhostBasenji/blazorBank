@@ -1,20 +1,20 @@
-﻿using System.Threading.Tasks;
-using Data.DTOs;
+﻿using Data.DTOs;
 using Data.Repositories;
 
-namespace Data.Services;
-
-public class AccountService : IAccountService
+namespace Data.Services
 {
-    private readonly IAccountRepository _repository;
-
-    public AccountService(IAccountRepository repository)
+    public class AccountService : IAccountService
     {
-        _repository = repository;
-    }
+        private readonly IAccountRepository _accountRepository;
 
-    public async Task<AccountInfoDto?> GetAccountInfoByClientIdAsync(int clientId)
-    {
-        return await _repository.GetAccountInfoByClientIdAsync(clientId);
+        public AccountService(IAccountRepository accountRepository)
+        {
+            _accountRepository = accountRepository;
+        }
+
+        public async Task<List<AccountInfoDto>> GetAccountsByClientIdAsync(int clientId)
+        {
+            return await _accountRepository.GetAccountsByClientIdAsync(clientId);
+        }
     }
 }

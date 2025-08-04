@@ -15,37 +15,22 @@ public class AccountRepository : IAccountRepository
         _context = context;
     }
 
-    public async Task<AccountInfoDto?> GetAccountInfoByClientIdAsync(int clientId)
+    public async Task<List<AccountInfoDto>> GetAccountsByClientIdAsync(int clientId)
     {
-        // Логирование для диагностики
-        Console.WriteLine($"Searching for account with ClientId: {clientId}");
-
-        // Сначала проверим есть ли аккаунты вообще
-        var accountsCount = await _context.Accounts.CountAsync();
-        Console.WriteLine($"Total accounts in database: {accountsCount}");
-
-        // Проверим есть ли аккаунты для данного клиента
-        var clientAccountsCount = await _context.Accounts
+        return await _context.Accounts
             .Where(a => a.ClientId == clientId)
-            .CountAsync();
-        Console.WriteLine($"Accounts for ClientId {clientId}: {clientAccountsCount}");
-
-        // Основной запрос
-        var result = await _context.Accounts
             .Include(a => a.Client)
             .Include(a => a.Currency)
             .Include(a => a.Status)
-            .Where(a => a.ClientId == clientId && a.DeletionDate == null)
             .Select(a => new AccountInfoDto
             {
                 AccountNumber = a.AccountNumber,
                 FullName = a.Client.FirstName + " " + a.Client.LastName,
                 Currency = a.Currency.CurrencyCode,
                 Status = a.Status.StatusName,
-                Balance = a.Balance ?? 0m,
-                CreatedAt = a.CreatedAt ?? DateTime.MinValue
+                Balance = a.Balance ?? 0,
+                CreatedAt = a.CreatedAt
             })
-            .FirstOrDefaultAsync();
-        return result;
+            .ToListAsync();
     }
 }

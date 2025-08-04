@@ -49,3 +49,17 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+table td, table th {
+    vertical-align: middle !important;
+}
+
+table thead {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+.badge {
+    font-size: 0.75rem;
+}
