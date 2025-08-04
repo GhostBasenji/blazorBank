@@ -35,7 +35,7 @@ public class AccountRepository : IAccountRepository
             .Include(a => a.Client)
             .Include(a => a.Currency)
             .Include(a => a.Status)
-            .Where(a => a.ClientId == clientId /*&& a.DeletionDate == null*/)
+            .Where(a => a.ClientId == clientId && a.DeletionDate == null)
             .Select(a => new AccountInfoDto
             {
                 AccountNumber = a.AccountNumber,
