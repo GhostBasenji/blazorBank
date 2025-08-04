@@ -53,7 +53,7 @@ else
         {
             await CurrentClient.LoadClientAsync();
 
-            if (CurrentClient.LoggedInClient == null)
+            if (CurrentClient.LoadClientAsync == null)
             {
                 Nav.NavigateTo("/login");
                 return;
@@ -69,7 +69,5 @@ else
         {
             isLoading = false;
         }
-
-        // Console.WriteLine($"Current logged-in client ID: {CurrentClient.LoggedInClient?.ClientId}");
     }
 }
