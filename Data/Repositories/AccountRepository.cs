@@ -46,13 +46,6 @@ public class AccountRepository : IAccountRepository
                 CreatedAt = a.CreatedAt ?? DateTime.MinValue
             })
             .FirstOrDefaultAsync();
-
-        Console.WriteLine($"Result is null: {result == null}");
-        if (result != null)
-        {
-            Console.WriteLine($"Found account: {result.AccountNumber}");
-        }
-
         return result;
     }
 }
