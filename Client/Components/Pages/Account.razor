@@ -18,14 +18,29 @@ else if (accountInfo == null)
 }
 else
 {
-    <div class="card p-4" style="max-width: 500px;">
-        <div class="mb-2"><strong>Account Number:</strong> @accountInfo.AccountNumber</div>
-        <div class="mb-2"><strong>Full Name:</strong> @accountInfo.FullName</div>
-        <div class="mb-2"><strong>Currency:</strong> @accountInfo.Currency</div>
-        <div class="mb-2"><strong>Status:</strong> @accountInfo.Status</div>
-        <div class="mb-2"><strong>Balance:</strong> @accountInfo.Balance?.ToString("C")</div>
-        <div class="mb-2"><strong>Created At:</strong> @accountInfo.CreatedAt?.ToString("yyyy-MM-dd")</div>
-    </div>
+    <table class="table table-bordered table-hover table-striped text-center" style="max-width: 100%; border-radius: 0.5rem; overflow: hidden;">
+        <thead class="table-light">
+            <tr>
+                <th>Account Number</th>
+                <th>Full Name</th>
+                <th>Currency</th>
+                <th>Status</th>
+                <th>Balance</th>
+                <th>Created At</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@accountInfo.AccountNumber</td>
+                <td>@accountInfo.FullName</td>
+                <td>@accountInfo.Currency</td>
+                <td>@accountInfo.Status</td>
+                <td>@accountInfo.Balance?.ToString("C")</td>
+                <td>@accountInfo.CreatedAt?.ToString("yyyy-MM-dd")</td>
+            </tr>
+        </tbody>
+    </table>
+
 }
 
 @code {
