@@ -1,0 +1,78 @@
+﻿@page "/account"
+@using Data.DTOs
+@using Data.Models
+@using ClientApp.Services
+@inject ClientApp.Services.CurrentClientService CurrentClientService
+@inject Data.Services.IAccountService AccountService
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+@using ClientModel = Data.Models.Client
+
+
+<h3 class="mb-4">Account Information</h3>
+
+@if (isLoading)
+{
+    <p>Loading account details...</p>
+}
+else if (accountInfo == null)
+{
+    <p>No account information found.</p>
+}
+else
+{
+    <table class="table table-bordered table-hover table-striped text-center shadow-sm rounded" style="max-width: 100%; overflow: hidden;">
+        <thead class="table-primary text-white">
+            <tr>
+                <th>Account Number</th>
+                <th>Full Name</th>
+                <th>Currency</th>
+                <th>Status</th>
+                <th>Balance</th>
+                <th>Created At</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@(accountInfo?.AccountNumber ?? "-")</td>
+                <td>@(accountInfo?.FullName ?? "-")</td>
+                <td>@(accountInfo?.Currency ?? "-")</td>
+                <td>@(accountInfo?.Status ?? "-")</td>
+                <td>@(accountInfo?.Balance?.ToString("C") ?? "-")</td>
+                <td>@(accountInfo?.CreatedAt?.ToString("yyyy-MM-dd") ?? "-")</td>
+            </tr>
+        </tbody>
+    </table>
+}
+
+@code {
+    private AccountInfoDto? accountInfo;
+    private bool isLoading = true;
+    private ClientModel? client;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            client = await CurrentClientService.GetCurrentClientAsync();
+
+            if (client == null)
+            {
+                Nav.NavigateTo("/login");
+                return;
+            }
+
+            accountInfo = await AccountService.GetAccountInfoByClientIdAsync(client.ClientId);
+        }
+        catch
+        {
+            accountInfo = null;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}
+
