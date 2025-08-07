@@ -25,12 +25,22 @@ else
         <table class="table custom-table text-center align-middle">
             <thead>
                 <tr>
-                    <th @onclick="() => SortBy(nameof(AccountInfoDto.AccountNumber))">Account No.</th>
-                    <th @onclick="() => SortBy(nameof(AccountInfoDto.FullName))">Client name</th>
-                    <th @onclick="() => SortBy(nameof(AccountInfoDto.Currency))">Currency</th>
-                    <th @onclick="() => SortBy(nameof(AccountInfoDto.Status))">Status</th>
-                    <th @onclick="() => SortBy(nameof(AccountInfoDto.Balance))">Balance</th>
-                    <th @onclick="() => SortBy(nameof(AccountInfoDto.CreatedAt))">Created date</th>
+                    <th @onclick="SortByAccountNumber" style="cursor:pointer;">
+                        Account No.
+                        @if (sortAscending)
+                        {
+                            <span>&uarr;</span>
+                        }
+                        else
+                        {
+                            <span>&darr;</span>
+                        }
+                    </th>
+                    <th>Client name</th>
+                    <th>Currency</th>
+                    <th>Status</th>
+                    <th>Balance</th>
+                    <th>Created date</th>
                 </tr>
             </thead>
             <tbody>
@@ -53,12 +63,10 @@ else
 }
 
 @code {
-    @code {
     private List<AccountInfoDto>? accounts;
     private List<AccountInfoDto>? sortedAccounts;
     private bool isLoading = true;
 
-    private string? sortColumn;
     private bool sortAscending = true;
 
     protected override async Task OnInitializedAsync()
@@ -74,7 +82,7 @@ else
             }
 
             accounts = await AccountService.GetAccountsByClientIdAsync(client.ClientId);
-            SortBy(nameof(AccountInfoDto.AccountNumber)); // начальная сортировка
+            SortByAccountNumber(); // начальная сортировка
         }
         catch
         {
@@ -86,49 +94,13 @@ else
         }
     }
 
-    private void SortBy(string columnName)
+    private void SortByAccountNumber()
     {
-        if (accounts is null)
-            return;
+        if (accounts == null) return;
 
-        if (sortColumn == columnName)
-        {
-            sortAscending = !sortAscending;
-        }
-        else
-        {
-            sortColumn = columnName;
-            sortAscending = true;
-        }
-
-        sortedAccounts = columnName switch
-        {
-            nameof(AccountInfoDto.AccountNumber) => sortAscending
-                ? accounts.OrderBy(a => a.AccountNumber).ToList()
-                : accounts.OrderByDescending(a => a.AccountNumber).ToList(),
-
-            nameof(AccountInfoDto.FullName) => sortAscending
-                ? accounts.OrderBy(a => a.FullName).ToList()
-                : accounts.OrderByDescending(a => a.FullName).ToList(),
-
-            nameof(AccountInfoDto.Currency) => sortAscending
-                ? accounts.OrderBy(a => a.Currency).ToList()
-                : accounts.OrderByDescending(a => a.Currency).ToList(),
-
-            nameof(AccountInfoDto.Status) => sortAscending
-                ? accounts.OrderBy(a => a.Status).ToList()
-                : accounts.OrderByDescending(a => a.Status).ToList(),
-
-            nameof(AccountInfoDto.Balance) => sortAscending
-                ? accounts.OrderBy(a => a.Balance).ToList()
-                : accounts.OrderByDescending(a => a.Balance).ToList(),
-
-            nameof(AccountInfoDto.CreatedAt) => sortAscending
-                ? accounts.OrderBy(a => a.CreatedAt).ToList()
-                : accounts.OrderByDescending(a => a.CreatedAt).ToList(),
-
-            _ => accounts
-        };
+        sortAscending = !sortAscending;
+        sortedAccounts = sortAscending
+            ? accounts.OrderBy(a => a.AccountNumber).ToList()
+            : accounts.OrderByDescending(a => a.AccountNumber).ToList();
     }
-}
 }
