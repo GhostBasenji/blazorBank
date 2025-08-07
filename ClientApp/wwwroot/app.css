@@ -50,16 +50,36 @@ h1:focus {
     border-color: #929292;
 }
 
-table td, table th {
-    vertical-align: middle !important;
+.table-container {
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }
 
-table thead {
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
+/* Снимаем рамки внутри, оставляя только внешнюю рамку */
+.custom-table {
+    margin-bottom: 0;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
-.badge {
-    font-size: 0.75rem;
-}
+    .custom-table thead {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        font-weight: 600;
+    }
+
+        .custom-table thead th {
+            border-bottom: 1px solid #dee2e6;
+        }
+
+    .custom-table td,
+    .custom-table th {
+        border: none;
+    }
+
+    .custom-table tbody tr:hover {
+        background-color: #f2f4f8;
+    }
+

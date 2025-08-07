@@ -2,14 +2,14 @@
 @using Data.DTOs
 @using Data.Models
 @using ClientApp.Services
-@inject CurrentClientService CurrentClientService
+@inject ServiceCurrentClient CurrentClientService
 @inject IAccountService AccountService
 @inject NavigationManager Nav
 @rendermode InteractiveServer
 
 @using ClientModel = Data.Models.Client
 
-<h3 class="mb-4">Account Information</h3>
+<h3 class="mb-4 fw-bold">Accounts</h3>
 
 @if (isLoading)
 {
@@ -21,31 +21,36 @@ else if (accounts is null || accounts.Count == 0)
 }
 else
 {
-    <table class="table table-bordered table-hover table-striped text-center shadow-sm rounded" style="max-width: 100%; overflow: hidden;">
-        <thead class="table-light">
-            <tr>
-                <th>Account Number</th>
-                <th>Full Name</th>
-                <th>Currency</th>
-                <th>Status</th>
-                <th>Balance</th>
-                <th>Created At</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var acc in accounts)
-            {
+    <div class="table-container mt-3">
+        <table class="table custom-table text-center align-middle">
+            <thead>
                 <tr>
-                    <td>@acc.AccountNumber</td>
-                    <td>@acc.FullName</td>
-                    <td>@acc.Currency</td>
-                    <td>@acc.Status</td>
-                    <td>@acc.Balance?.ToString("C")</td>
-                    <td>@acc.CreatedAt?.ToString("yyyy-MM-dd")</td>
+                    <th>Account No.</th>
+                    <th>Client name</th>
+                    <th>Currency</th>
+                    <th>Status</th>
+                    <th>Balance</th>
+                    <th>Created date</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var acc in accounts)
+                {
+                    <tr>
+                        <td>@acc.AccountNumber</td>
+                        <td class="text-primary fw-medium">@acc.FullName</td>
+                        <td class="text-primary">@acc.Currency</td>
+                        <td>
+                            <span class="badge bg-light text-dark border px-3 py-1 rounded-pill shadow-sm">@acc.Status</span>
+                        </td>
+                        <td>@acc.Balance?.ToString("C")</td>
+                        <td>@acc.CreatedAt?.ToString("yyyy-MM-dd")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
 }
 
 @code {

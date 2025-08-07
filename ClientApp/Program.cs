@@ -13,7 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ProtectedSessionStorage>();
-builder.Services.AddScoped<CurrentClientService>();
+builder.Services.AddScoped<ServiceCurrentClient>();
 
 
 
