@@ -15,8 +15,6 @@ builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddScoped<ServiceCurrentClient>();
 
-
-
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
