@@ -57,7 +57,7 @@ public partial class BlazorBankContext : DbContext
             entity.HasIndex(e => e.AccountNumber, "UQ__Accounts__BE2ACD6F9A622514").IsUnique();
 
             entity.Property(e => e.AccountId).HasColumnName("AccountID");
-            entity.Property(e => e.AccountNumber).HasMaxLength(20);
+            entity.Property(e => e.AccountNumber).HasMaxLength(30);
             entity.Property(e => e.Balance)
                 .HasDefaultValue(0.00m)
                 .HasColumnType("decimal(18, 2)");

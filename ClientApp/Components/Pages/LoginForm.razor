@@ -1,10 +1,10 @@
-﻿@using Client.Services
+﻿@using ClientApp.Services
 @using Data.Services
 @inject Data.Services.IClientAuthService AuthService
-@inject CurrentClientService CurrentClient
 @inject NavigationManager Nav
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+@inject ClientApp.Services.ServiceCurrentClient CurrentClientService
 
 
 <div class="card p-4" style="width: 400px;">
@@ -40,7 +40,7 @@
 
         if (client is not null)
         {
-            await CurrentClient.SetClientAsync(client);
+            await CurrentClientService.SetClientAsync(client);
             errorMessage = null;
             Nav.NavigateTo("/account");
         }

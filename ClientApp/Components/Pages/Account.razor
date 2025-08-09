@@ -1,0 +1,106 @@
+﻿@page "/account"
+@using Data.DTOs
+@using Data.Models
+@using ClientApp.Services
+@inject ServiceCurrentClient CurrentClientService
+@inject IAccountService AccountService
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+@using ClientModel = Data.Models.Client
+
+<h3 class="mb-4 fw-bold">Accounts</h3>
+
+@if (isLoading)
+{
+    <p>Loading account details...</p>
+}
+else if (accounts is null || accounts.Count == 0)
+{
+    <p>No account information found.</p>
+}
+else
+{
+    <div class="table-container mt-3">
+        <table class="table custom-table text-center align-middle">
+            <thead>
+                <tr>
+                    <th @onclick="SortByAccountNumber" style="cursor:pointer;">
+                        Account No.
+                        @if (sortAscending)
+                        {
+                            <span>&uarr;</span>
+                        }
+                        else
+                        {
+                            <span>&darr;</span>
+                        }
+                    </th>
+                    <th>Client name</th>
+                    <th>Currency</th>
+                    <th>Status</th>
+                    <th>Balance</th>
+                    <th>Created date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var acc in sortedAccounts)
+                {
+                    <tr>
+                        <td>@acc.AccountNumber</td>
+                        <td class="text-primary fw-medium">@acc.FullName</td>
+                        <td class="text-primary">@acc.Currency</td>
+                        <td>
+                            <span class="badge bg-light text-dark border px-3 py-1 rounded-pill shadow-sm">@acc.Status</span>
+                        </td>
+                        <td>@acc.Balance?.ToString("C")</td>
+                        <td>@acc.CreatedAt?.ToString("yyyy-MM-dd")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<AccountInfoDto>? accounts;
+    private List<AccountInfoDto>? sortedAccounts;
+    private bool isLoading = true;
+
+    private bool sortAscending = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var client = await CurrentClientService.GetCurrentClientAsync();
+
+            if (client == null)
+            {
+                Nav.NavigateTo("/login");
+                return;
+            }
+
+            accounts = await AccountService.GetAccountsByClientIdAsync(client.ClientId);
+            SortByAccountNumber(); // начальная сортировка
+        }
+        catch
+        {
+            accounts = new();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void SortByAccountNumber()
+    {
+        if (accounts == null) return;
+
+        sortAscending = !sortAscending;
+        sortedAccounts = sortAscending
+            ? accounts.OrderBy(a => a.AccountNumber).ToList()
+            : accounts.OrderByDescending(a => a.AccountNumber).ToList();
+    }
+}

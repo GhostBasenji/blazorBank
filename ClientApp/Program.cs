@@ -1,5 +1,5 @@
-using Client.Components;
-using Client.Services;
+using ClientApp.Components;
+using ClientApp.Services;
 using Data.Contexts;
 using Data.DTOs;
 using Data.Infrastructure;
@@ -13,9 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ProtectedSessionStorage>();
-builder.Services.AddScoped<CurrentClientService>();
-
-
+builder.Services.AddScoped<ServiceCurrentClient>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
