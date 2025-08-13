@@ -14,6 +14,7 @@ builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddScoped<ServiceCurrentClient>();
+builder.Services.AddScoped<IClientAuthService, ClientAuthService>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
