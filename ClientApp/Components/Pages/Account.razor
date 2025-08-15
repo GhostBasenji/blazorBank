@@ -9,6 +9,7 @@
 
 @using ClientModel = Data.Models.Client
 
+<h3 class="mb-2 fw-bold">Hello, @username!</h3>
 <h3 class="mb-4 fw-bold">Accounts</h3>
 
 @if (isLoading)
@@ -68,6 +69,7 @@ else
     private bool isLoading = true;
 
     private bool sortAscending = true;
+    private string? username;
 
     protected override async Task OnInitializedAsync()
     {
@@ -81,8 +83,10 @@ else
                 return;
             }
 
+            username = client.Username;
+
             accounts = await AccountService.GetAccountsByClientIdAsync(client.ClientId);
-            SortByAccountNumber(); // начальная сортировка
+            SortByAccountNumber();
         }
         catch
         {

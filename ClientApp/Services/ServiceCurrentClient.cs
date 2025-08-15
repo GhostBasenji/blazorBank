@@ -16,13 +16,11 @@ namespace ClientApp.Services
             _dbContext = dbContext;
         }
 
-        // Сохраняем ID клиента в sessionStorage (состояние в сервисе не храним)
         public async Task SetClientAsync(Client client)
         {
             await _sessionStorage.SetAsync("LoggedInClientId", client.ClientId);
         }
 
-        // Получаем клиента из sessionStorage и базы, возвращая его вызывающей стороне
         public async Task<Client?> GetCurrentClientAsync()
         {
             var result = await _sessionStorage.GetAsync<int>("LoggedInClientId");
@@ -34,7 +32,6 @@ namespace ClientApp.Services
             return null;
         }
 
-        // Очистка sessionStorage при логауте
         public async Task LogoutAsync()
         {
             await _sessionStorage.DeleteAsync("LoggedInClientId");
