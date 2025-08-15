@@ -1,0 +1,87 @@
+﻿@using Data.Services
+@using Data.Models
+@inject IClientAuthService AuthService
+@inject ServiceCurrentClient CurrentClientService
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<div class="card shadow-sm p-4" style="max-width: 400px;">
+    <h3 class="mb-3">Register</h3>
+
+    <div class="mb-3">
+        <label>First Name</label>
+        <input class="form-control" @bind="firstName" autocomplete="off" />
+    </div>
+
+    <div class="mb-3">
+        <label>Last Name</label>
+        <input class="form-control" @bind="lastName" autocomplete="off" />
+    </div>
+
+    <div class="mb-3">
+        <label>Username</label>
+        <input class="form-control" @bind="username" autocomplete="off" />
+    </div>
+
+    <div class="mb-3">
+        <label>Email</label>
+        <input type="email" class="form-control" @bind="email" autocomplete="off" />
+    </div>
+
+    <div class="mb-3">
+        <label>Password</label>
+        <input type="password" class="form-control" @bind="password" autocomplete="off" />
+    </div>
+
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+
+    <div class="d-flex justify-content-between">
+        <button class="btn btn-success" @onclick="Register" disabled="@isRegistering">
+            @(isRegistering ? "Registering..." : "Register")
+        </button>
+        <button class="btn btn-secondary" @onclick="OnCancel">Cancel</button>
+    </div>
+</div>
+
+@code {
+    private string firstName = "";
+    private string lastName = "";
+    private string username = "";
+    private string email = "";
+    private string password = "";
+    private string error = "";
+    private bool isRegistering = false;
+
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private async Task Register()
+    {
+        error = "";
+        isRegistering = true;
+
+        try
+        {
+            // Создание нового пользователя
+            var client = await AuthService.RegisterAsync(firstName, lastName, username, email, password);
+            if (client != null)
+            {
+                // Сохраняем текущего клиента в сервис
+                CurrentClientService.SetClientAsync(client);
+
+                // Перенаправляем на главную страницу или личный кабинет
+                Nav.NavigateTo("/account");
+            }
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            isRegistering = false;
+        }
+    }
+}

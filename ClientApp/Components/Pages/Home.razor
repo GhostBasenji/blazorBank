@@ -10,23 +10,46 @@
 <div class="text-center mt-5">
     <h1>Welcome to <span class="text-primary">Bank Blazor</span></h1>
 
-    @if (!showLogin)
+    @if (!showLogin && !showRegister)
     {
-        <div class="mt-4">
+        <div class="mt-4 d-flex justify-content-center gap-2">
             <button class="btn btn-primary btn-lg" @onclick="ShowLogin">Sign In</button>
+            <button class="btn btn-secondary btn-lg" @onclick="ShowRegister">Register</button>
         </div>
     }
-    else
+    else if (showLogin)
     {
         <div class="d-flex justify-content-center mt-4">
-            <LoginForm OnCancel="CloseLogin" />
+            <LoginForm OnCancel="CloseForms" />
+        </div>
+    }
+    else if (showRegister)
+    {
+        <div class="d-flex justify-content-center mt-4">
+            <RegisterForm OnCancel="CloseForms" />
         </div>
     }
 </div>
 
 @code {
     private bool showLogin = false;
+    private bool showRegister = false;
 
-    private void ShowLogin() => showLogin = true;
-    private void CloseLogin() => showLogin = false;
+    private void ShowLogin()
+    {
+        showRegister = false;
+        showLogin = true;
+    }
+
+    private void ShowRegister()
+    {
+        showLogin = false;
+        showRegister = true;
+    }
+
+    private void CloseForms()
+    {
+        showLogin = false;
+        showRegister = false;
+    }
 }
