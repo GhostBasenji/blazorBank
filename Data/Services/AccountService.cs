@@ -1,5 +1,7 @@
 ﻿using Data.DTOs;
 using Data.Repositories;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Data.Services
 {
@@ -15,6 +17,11 @@ namespace Data.Services
         public async Task<List<AccountInfoDto>> GetAccountsByClientIdAsync(int clientId)
         {
             return await _accountRepository.GetAccountsByClientIdAsync(clientId);
+        }
+
+        public async Task<List<AccountInfoDto>> SearchAccountsAsync(int clientId, string? searchTerm)
+        {
+            return await _accountRepository.SearchAccountsAsync(clientId, searchTerm);
         }
     }
 }

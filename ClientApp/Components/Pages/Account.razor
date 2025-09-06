@@ -7,8 +7,6 @@
 @inject NavigationManager Nav
 @rendermode InteractiveServer
 
-@using ClientModel = Data.Models.Client
-
 <h3 class="mb-4 fw-bold">Accounts</h3>
 
 @if (isLoading)
@@ -21,44 +19,57 @@ else if (accounts is null || accounts.Count == 0)
 }
 else
 {
+    <div class="d-flex justify-content-end mb-3">
+        <InputText @bind-Value="searchText" placeholder="Enter account number..." class="form-control w-25 me-2" />
+        <button class="btn btn-primary" @onclick="OnSearch">Search</button>
+        <button class="btn btn-secondary ms-2" @onclick="OnReset">Reset</button>
+    </div>
+
     <div class="table-container mt-3">
-        <table class="table custom-table text-center align-middle">
-            <thead>
-                <tr>
-                    <th @onclick="SortByAccountNumber" style="cursor:pointer;">
-                        Account No.
-                        @if (sortAscending)
-                        {
-                            <span>&uarr;</span>
-                        }
-                        else
-                        {
-                            <span>&darr;</span>
-                        }
-                    </th>
-                    <th>Client name</th>
-                    <th>Currency</th>
-                    <th>Status</th>
-                    <th>Balance</th>
-                    <th>Created date</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var acc in sortedAccounts)
-                {
+        @if (sortedAccounts is null || sortedAccounts.Count == 0)
+        {
+            <p>No accounts found</p>
+        }
+        else
+        {
+            <table class="table custom-table text-center align-middle">
+                <thead>
                     <tr>
-                        <td>@acc.AccountNumber</td>
-                        <td class="text-primary fw-medium">@acc.FullName</td>
-                        <td class="text-primary">@acc.Currency</td>
-                        <td>
-                            <span class="badge bg-light text-dark border px-3 py-1 rounded-pill shadow-sm">@acc.Status</span>
-                        </td>
-                        <td>@acc.Balance?.ToString("C")</td>
-                        <td>@acc.CreatedAt?.ToString("yyyy-MM-dd")</td>
+                        <th @onclick="SortByAccountNumber" style="cursor:pointer;">
+                            Account No.
+                            @if (sortAscending)
+                            {
+                                <span>&uarr;</span>
+                            }
+                            else
+                            {
+                                <span>&darr;</span>
+                            }
+                        </th>
+                        <th>Client name</th>
+                        <th>Currency</th>
+                        <th>Status</th>
+                        <th>Balance</th>
+                        <th>Created date</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var acc in sortedAccounts)
+                    {
+                        <tr>
+                            <td>@acc.AccountNumber</td>
+                            <td class="text-primary fw-medium">@acc.FullName</td>
+                            <td class="text-primary">@acc.Currency</td>
+                            <td>
+                                <span class="badge bg-light text-dark border px-3 py-1 rounded-pill shadow-sm">@acc.Status</span>
+                            </td>
+                            <td>@acc.Balance?.ToString("C")</td>
+                            <td>@acc.CreatedAt?.ToString("yyyy-MM-dd")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
     </div>
 }
 
@@ -68,13 +79,15 @@ else
     private bool isLoading = true;
 
     private bool sortAscending = true;
+    private string searchText = string.Empty;
+
+    private const int LocalFilterThreshold = 500;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             var client = await CurrentClientService.GetCurrentClientAsync();
-
             if (client == null)
             {
                 Nav.NavigateTo("/login");
@@ -82,7 +95,7 @@ else
             }
 
             accounts = await AccountService.GetAccountsByClientIdAsync(client.ClientId);
-            SortByAccountNumber(); // начальная сортировка
+            ApplySortingAndFiltering();
         }
         catch
         {
@@ -94,13 +107,59 @@ else
         }
     }
 
+    private async Task OnSearch()
+    {
+        var client = await CurrentClientService.GetCurrentClientAsync();
+        if (client == null) return;
+
+        if (accounts != null && accounts.Count <= LocalFilterThreshold)
+        {
+            ApplySortingAndFiltering();
+        }
+        else
+        {
+            var results = await AccountService.SearchAccountsAsync(client.ClientId, searchText);
+            sortedAccounts = sortAscending
+                ? results.OrderBy(a => a.AccountNumber).ToList()
+                : results.OrderByDescending(a => a.AccountNumber).ToList();
+        }
+    }
+
+    private async Task OnReset()
+    {
+        searchText = string.Empty;
+        await OnSearch(); 
+    }
+
     private void SortByAccountNumber()
+    {
+        sortAscending = !sortAscending;
+
+        if (accounts != null && accounts.Count <= LocalFilterThreshold)
+        {
+            ApplySortingAndFiltering();
+        }
+        else if (sortedAccounts != null)
+        {
+            sortedAccounts = sortAscending
+                ? sortedAccounts.OrderBy(a => a.AccountNumber).ToList()
+                : sortedAccounts.OrderByDescending(a => a.AccountNumber).ToList();
+        }
+    }
+
+    private void ApplySortingAndFiltering()
     {
         if (accounts == null) return;
 
-        sortAscending = !sortAscending;
+        var query = accounts.AsEnumerable();
+
+        if (!string.IsNullOrWhiteSpace(searchText))
+        {
+            query = query.Where(a => a.AccountNumber.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+        }
+
         sortedAccounts = sortAscending
-            ? accounts.OrderBy(a => a.AccountNumber).ToList()
-            : accounts.OrderByDescending(a => a.AccountNumber).ToList();
+            ? query.OrderBy(a => a.AccountNumber).ToList()
+            : query.OrderByDescending(a => a.AccountNumber).ToList();
     }
 }
