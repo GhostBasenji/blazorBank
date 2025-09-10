@@ -2,7 +2,7 @@
 @using System.ComponentModel.DataAnnotations
 @inject IAccountService AccountService
 
-@if (Show && Account != null)
+@if (IsOpen && Account != null)
 {
     <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
         <div class="modal-dialog">
@@ -12,13 +12,22 @@
                     <button type="button" class="btn-close" @onclick="CloseModal"></button>
                 </div>
                 <div class="modal-body">
-                    <EditForm Model="@this" OnValidSubmit="HandleValidSubmit">
+                    <EditForm EditContext="@editContext" OnValidSubmit="HandleValidSubmit">
                         <DataAnnotationsValidator />
                         <ValidationSummary />
 
                         <div class="mb-3">
                             <label class="form-label">Amount</label>
-                            <InputNumber class="form-control" @bind-Value="TopUpAmount" />
+                            <!-- input ограничивает ввод до 2 знаков -->
+                            <input type="number"
+                                   class="form-control"
+                                   step="0.01"
+                                   min="0.01"
+                                   max="100000"
+                                   @bind="TopUpAmount" />
+                            <small class="text-muted">
+                                Enter an amount with up to 2 decimal places (e.g., 123.45)
+                            </small>
                             <ValidationMessage For="@(() => TopUpAmount)" />
                         </div>
 
@@ -38,10 +47,10 @@
 }
 
 @code {
-    [Parameter] public AccountInfoDto? Account { get; set; }       // текущий счёт
-    [Parameter] public bool Show { get; set; }                     // показывать модал?
-    [Parameter] public EventCallback OnClose { get; set; }         // закрытие модала
-    [Parameter] public EventCallback OnSuccess { get; set; }       // успешное пополнение
+    [Parameter] public AccountInfoDto? Account { get; set; }
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnSuccess { get; set; }
 
     [Required(ErrorMessage = "Amount is required")]
     [Range(0.01, 100_000, ErrorMessage = "Amount must be between 0.01 and 100,000")]
@@ -49,9 +58,17 @@
 
     private bool isLoading { get; set; }
 
+    private EditContext? editContext;
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(this);
+    }
+
     private async Task HandleValidSubmit()
     {
-        if (Account == null) return;
+        if (Account == null)
+            return;
 
         try
         {
@@ -60,7 +77,6 @@
             await AccountService.TopUpAccountAsync(Account.AccountId, TopUpAmount);
 
             await OnSuccess.InvokeAsync();
-
             await OnClose.InvokeAsync();
         }
         catch (Exception ex)

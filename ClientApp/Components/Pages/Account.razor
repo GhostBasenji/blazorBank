@@ -80,7 +80,7 @@ else
 }
 
 <TopUpModal Account="SelectedAccount"
-            Show="ShowTopUpModalFlag"
+            IsOpen="IsTopUpModalOpen"
             OnSuccess="HandleTopUpSuccess"
             OnClose="HandleCloseModal" />
 
@@ -95,7 +95,7 @@ else
     private const int LocalFilterThreshold = 500;
 
     private AccountInfoDto? SelectedAccount { get; set; }
-    private bool ShowTopUpModalFlag { get; set; }
+    private bool IsTopUpModalOpen { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -187,17 +187,17 @@ else
     private void ShowTopUpModal(AccountInfoDto account)
     {
         SelectedAccount = account;
-        ShowTopUpModalFlag = true;
+        IsTopUpModalOpen = true;
     }
 
     private async Task HandleTopUpSuccess()
     {
         await LoadAccountsAsync();
-        ShowTopUpModalFlag = false;
+        IsTopUpModalOpen = false;
     }
 
     private void HandleCloseModal()
     {
-        ShowTopUpModalFlag = false;
+        IsTopUpModalOpen = false;
     }
 }
