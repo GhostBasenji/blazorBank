@@ -8,6 +8,7 @@ namespace Data.DTOs
 {
     public class AccountInfoDto
     {
+        public int AccountId { get; set; }
         public string AccountNumber { get; set; } = null!;
         public string FullName { get; set; } = null!;
         public string Currency { get; set; } = null!;

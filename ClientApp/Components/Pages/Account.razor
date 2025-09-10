@@ -1,8 +1,7 @@
 ﻿@page "/account"
 @using Data.DTOs
 @using Data.Models
-@using ClientApp.Services
-@inject ServiceCurrentClient CurrentClientService
+@inject ClientApp.Services.ServiceCurrentClient CurrentClientService
 @inject IAccountService AccountService
 @inject NavigationManager Nav
 @rendermode InteractiveServer
@@ -51,6 +50,7 @@ else
                         <th>Status</th>
                         <th>Balance</th>
                         <th>Created date</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -65,6 +65,12 @@ else
                             </td>
                             <td>@acc.Balance?.ToString("C")</td>
                             <td>@acc.CreatedAt?.ToString("yyyy-MM-dd")</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary"
+                                        @onclick="() => ShowTopUpModal(acc)">
+                                    Top Up
+                                </button>
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -72,6 +78,11 @@ else
         }
     </div>
 }
+
+<TopUpModal Account="SelectedAccount"
+            Show="ShowTopUpModalFlag"
+            OnSuccess="HandleTopUpSuccess"
+            OnClose="HandleCloseModal" />
 
 @code {
     private List<AccountInfoDto>? accounts;
@@ -83,10 +94,20 @@ else
 
     private const int LocalFilterThreshold = 500;
 
+    private AccountInfoDto? SelectedAccount { get; set; }
+    private bool ShowTopUpModalFlag { get; set; }
+
     protected override async Task OnInitializedAsync()
+    {
+        await LoadAccountsAsync();
+    }
+
+    private async Task LoadAccountsAsync()
     {
         try
         {
+            isLoading = true;
+
             var client = await CurrentClientService.GetCurrentClientAsync();
             if (client == null)
             {
@@ -99,7 +120,7 @@ else
         }
         catch
         {
-            accounts = new();
+            accounts = new List<AccountInfoDto>();
         }
         finally
         {
@@ -128,7 +149,7 @@ else
     private async Task OnReset()
     {
         searchText = string.Empty;
-        await OnSearch(); 
+        await OnSearch();
     }
 
     private void SortByAccountNumber()
@@ -161,5 +182,22 @@ else
         sortedAccounts = sortAscending
             ? query.OrderBy(a => a.AccountNumber).ToList()
             : query.OrderByDescending(a => a.AccountNumber).ToList();
+    }
+
+    private void ShowTopUpModal(AccountInfoDto account)
+    {
+        SelectedAccount = account;
+        ShowTopUpModalFlag = true;
+    }
+
+    private async Task HandleTopUpSuccess()
+    {
+        await LoadAccountsAsync();
+        ShowTopUpModalFlag = false;
+    }
+
+    private void HandleCloseModal()
+    {
+        ShowTopUpModalFlag = false;
     }
 }
