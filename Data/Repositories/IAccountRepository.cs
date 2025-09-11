@@ -7,4 +7,6 @@ public interface IAccountRepository
 {
     Task<List<AccountInfoDto>> GetAccountsByClientIdAsync(int clientId);
     Task<List<AccountInfoDto>> SearchAccountsAsync(int clientId, string? searchTerm);
+
+    Task TopUpAccountAsync(int accountId, decimal amount);
 }

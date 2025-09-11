@@ -19,6 +19,11 @@ namespace Data.Services
             return await _accountRepository.GetAccountsByClientIdAsync(clientId);
         }
 
+        public async Task TopUpAccountAsync(int accountId, decimal amount)
+        {
+            await _accountRepository.TopUpAccountAsync(accountId, amount);
+        }
+
         public async Task<List<AccountInfoDto>> SearchAccountsAsync(int clientId, string? searchTerm)
         {
             return await _accountRepository.SearchAccountsAsync(clientId, searchTerm);

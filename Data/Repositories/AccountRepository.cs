@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using Data.Contexts;
+﻿using Data.Contexts;
 using Data.DTOs;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,6 +22,7 @@ public class AccountRepository : IAccountRepository
             .Include(a => a.Status)
             .Select(a => new AccountInfoDto
             {
+                AccountId = a.AccountId,
                 AccountNumber = a.AccountNumber,
                 FullName = a.Client.FirstName + " " + a.Client.LastName,
                 Currency = a.Currency.CurrencyCode,
@@ -61,4 +60,13 @@ public class AccountRepository : IAccountRepository
             .ToListAsync();
     }
 
+    public async Task TopUpAccountAsync(int accountId, decimal amount)
+    {
+        var account = await _context.Accounts.FindAsync(accountId);
+        if (account == null)
+            throw new KeyNotFoundException("Account not found");
+
+        account.Balance = (account.Balance ?? 0) + amount;
+        await _context.SaveChangesAsync();
+    }
 }
