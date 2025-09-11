@@ -28,5 +28,11 @@ namespace Data.Services
         {
             return await _accountRepository.SearchAccountsAsync(clientId, searchTerm);
         }
+
+        public async Task WithdrawAccountAsync(int accountId, decimal amount)
+        {
+            await _accountRepository.WithdrawAccountAsync(accountId, amount);
+        }
+
     }
 }

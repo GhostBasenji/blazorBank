@@ -69,4 +69,20 @@ public class AccountRepository : IAccountRepository
         account.Balance = (account.Balance ?? 0) + amount;
         await _context.SaveChangesAsync();
     }
+
+    public async Task WithdrawAccountAsync(int accountId, decimal amount)
+    {
+        if (amount <= 0)
+            throw new ArgumentException("Amount must be greater than zero.", nameof(amount));
+
+        var account = await _context.Accounts.FindAsync(accountId);
+        if (account == null)
+            throw new InvalidOperationException("Account not found.");
+
+        if (account.Balance < amount)
+            throw new InvalidOperationException("Insufficient funds.");
+
+        account.Balance -= amount;
+        await _context.SaveChangesAsync();
+    }
 }
