@@ -27,7 +27,7 @@ public class AccountRepository : IAccountRepository
                 FullName = a.Client.FirstName + " " + a.Client.LastName,
                 Currency = a.Currency.CurrencyCode,
                 Status = a.Status.StatusName,
-                Balance = a.Balance ?? 0,
+                Balance = a.Balance ?? 0m,
                 CreatedAt = a.CreatedAt
             })
             .ToListAsync();
@@ -50,11 +50,12 @@ public class AccountRepository : IAccountRepository
             .OrderBy(a => a.AccountNumber)
             .Select(a => new AccountInfoDto
             {
+                AccountId = a.AccountId,
                 AccountNumber = a.AccountNumber,
                 FullName = a.Client.FirstName + " " + a.Client.LastName,
                 Currency = a.Currency.CurrencyCode,
                 Status = a.Status.StatusName,
-                Balance = a.Balance ?? 0,
+                Balance = a.Balance ?? 0m,
                 CreatedAt = a.CreatedAt
             })
             .ToListAsync();
@@ -62,11 +63,14 @@ public class AccountRepository : IAccountRepository
 
     public async Task TopUpAccountAsync(int accountId, decimal amount)
     {
+        if (amount <= 0)
+            throw new ArgumentException("Amount must be greater than zero.", nameof(amount));
+
         var account = await _context.Accounts.FindAsync(accountId);
         if (account == null)
-            throw new KeyNotFoundException("Account not found");
+            throw new KeyNotFoundException("Account not found.");
 
-        account.Balance = (account.Balance ?? 0) + amount;
+        account.Balance = (account.Balance ?? 0m) + amount;
         await _context.SaveChangesAsync();
     }
 
@@ -79,10 +83,11 @@ public class AccountRepository : IAccountRepository
         if (account == null)
             throw new InvalidOperationException("Account not found.");
 
-        if (account.Balance < amount)
+        var currentBalance = account.Balance ?? 0m;
+        if (currentBalance < amount)
             throw new InvalidOperationException("Insufficient funds.");
 
-        account.Balance -= amount;
+        account.Balance = currentBalance - amount;
         await _context.SaveChangesAsync();
     }
 }
