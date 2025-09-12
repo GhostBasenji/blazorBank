@@ -66,9 +66,13 @@ else
                             <td>@acc.Balance?.ToString("C")</td>
                             <td>@acc.CreatedAt?.ToString("yyyy-MM-dd")</td>
                             <td>
-                                <button class="btn btn-sm btn-primary"
+                                <button class="btn btn-sm btn-primary me-1"
                                         @onclick="() => ShowTopUpModal(acc)">
                                     Top Up
+                                </button>
+                                <button class="btn btn-sm btn-danger"
+                                        @onclick="() => ShowWithdrawModal(acc)">
+                                    Withdraw
                                 </button>
                             </td>
                         </tr>
@@ -83,6 +87,11 @@ else
             IsOpen="IsTopUpModalOpen"
             OnSuccess="HandleTopUpSuccess"
             OnClose="HandleCloseModal" />
+
+<WithdrawModal Account="SelectedAccount"
+           IsOpen="IsWithdrawModalOpen"
+           OnSuccess="HandleWithdrawSuccess"
+           OnClose="HandleCloseWithdrawModal" />
 
 @code {
     private List<AccountInfoDto>? accounts;
@@ -200,4 +209,24 @@ else
     {
         IsTopUpModalOpen = false;
     }
+
+    private bool IsWithdrawModalOpen { get; set; }
+
+    private void ShowWithdrawModal(AccountInfoDto account)
+    {
+        SelectedAccount = account;
+        IsWithdrawModalOpen = true;
+    }
+
+    private async Task HandleWithdrawSuccess()
+    {
+        await LoadAccountsAsync();
+        IsWithdrawModalOpen = false;
+    }
+
+    private void HandleCloseWithdrawModal()
+    {
+        IsWithdrawModalOpen = false;
+    }
+
 }

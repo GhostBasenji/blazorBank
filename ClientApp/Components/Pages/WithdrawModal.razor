@@ -7,7 +7,7 @@
         <div class="modal-dialog">
             <div class="modal-content p-3">
                 <div class="modal-header">
-                    <h5 class="modal-title">Top up account @Account.AccountNumber</h5>
+                    <h5 class="modal-title">Withdraw from account @Account.AccountNumber</h5>
                     <button type="button" class="btn-close" @onclick="CloseModal"></button>
                 </div>
                 <div class="modal-body">
@@ -20,9 +20,16 @@
                             <ValidationMessage For="@(() => model.Amount)" />
                         </div>
 
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger py-2">
+                                @errorMessage
+                            </div>
+                        }
+
                         <div class="d-flex justify-content-end">
                             <button type="submit" class="btn btn-primary me-2" disabled="@isLoading">
-                                @(isLoading ? "Loading..." : "Submit")
+                                @(isLoading ? "Processing..." : "Withdraw")
                             </button>
                             <button type="button" class="btn btn-secondary" @onclick="CloseModal">
                                 Cancel
@@ -41,19 +48,33 @@
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnSuccess { get; set; }
 
-    private AmountDto model = new();
+    private readonly AmountDto model = new();
     private bool isLoading;
+    private string? errorMessage;
 
     private async Task HandleValidSubmit()
     {
-        if (Account == null) return;
+        if (Account == null)
+            return;
 
         isLoading = true;
+        errorMessage = null;
+
         try
         {
-            await AccountService.TopUpAccountAsync(Account.AccountId, model.Amount);
+            await AccountService.WithdrawAccountAsync(Account.AccountId, model.Amount);
             await OnSuccess.InvokeAsync();
             await CloseModal();
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("Insufficient funds"))
+        {
+            // Сообщаем пользователю о нехватке средств
+            errorMessage = "Insufficient funds to complete this withdrawal.";
+        }
+        catch (Exception ex)
+        {
+            // Общая обработка других ошибок
+            errorMessage = $"Error: {ex.Message}";
         }
         finally
         {
@@ -63,6 +84,9 @@
 
     private async Task CloseModal()
     {
+        // Сброс состояния при закрытии
+        errorMessage = null;
+        model.Amount = 0;
         await OnClose.InvokeAsync();
     }
 }
