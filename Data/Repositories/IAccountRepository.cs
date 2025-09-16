@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Data.DTOs;
+﻿using Data.DTOs;
 
 namespace Data.Repositories;
 
@@ -10,4 +9,6 @@ public interface IAccountRepository
 
     Task TopUpAccountAsync(int accountId, decimal amount);
     Task WithdrawAccountAsync(int accountId, decimal amount);
+
+    Task TransferAsync(int fromAccountId, int toAccountId, decimal amount);
 }
