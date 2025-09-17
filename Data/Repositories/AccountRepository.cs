@@ -28,7 +28,8 @@ public class AccountRepository : IAccountRepository
                 Currency = a.Currency.CurrencyCode,
                 Status = a.Status.StatusName,
                 Balance = a.Balance ?? 0m,
-                CreatedAt = a.CreatedAt
+                CreatedAt = a.CreatedAt,
+                ClientId = a.ClientId
             })
             .ToListAsync();
     }
@@ -89,5 +90,29 @@ public class AccountRepository : IAccountRepository
 
         account.Balance = currentBalance - amount;
         await _context.SaveChangesAsync();
+    }
+
+    public async Task TransferAsync(int fromAccountId, int toAccountId, decimal amount)
+    {
+        if (amount <= 0)
+            throw new ArgumentException("Amount must be greater than zero.", nameof(amount));
+
+        var fromAccount = await _context.Accounts.FindAsync(fromAccountId);
+        var toAccount = await _context.Accounts.FindAsync(toAccountId);
+
+        if (fromAccount == null || toAccount == null)
+            throw new KeyNotFoundException("One or both accounts not found.");
+
+        var fromBalance = fromAccount.Balance ?? 0m;
+        if (fromBalance < amount)
+            throw new InvalidOperationException("Insufficient funds on source account.");
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        fromAccount.Balance = fromBalance - amount;
+        toAccount.Balance = (toAccount.Balance ?? 0m) + amount;
+
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
     }
 }

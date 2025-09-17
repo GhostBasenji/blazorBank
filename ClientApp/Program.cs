@@ -1,12 +1,8 @@
 using ClientApp.Components;
 using ClientApp.Services;
-using Data.Contexts;
-using Data.DTOs;
-using Data.Infrastructure;
 using Data.Repositories;
 using Data.Services;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 

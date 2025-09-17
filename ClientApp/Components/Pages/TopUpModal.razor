@@ -15,14 +15,32 @@
                         <DataAnnotationsValidator />
 
                         <div class="mb-3">
+                            <label class="form-label">Source of funds</label>
+                            <select class="form-select" @bind="SelectedAccountId">
+                                <option value="">Cash</option>
+                                @foreach (var acc in OtherAccounts)
+                                {
+                                    <option value="@acc.AccountId">@acc.AccountNumber</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Amount</label>
                             <InputNumber @bind-Value="model.Amount" class="form-control" />
                             <ValidationMessage For="@(() => model.Amount)" />
                         </div>
 
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger py-2">
+                                @errorMessage
+                            </div>
+                        }
+
                         <div class="d-flex justify-content-end">
                             <button type="submit" class="btn btn-primary me-2" disabled="@isLoading">
-                                @(isLoading ? "Loading..." : "Submit")
+                                @(isLoading ? "Processing..." : "Top Up")
                             </button>
                             <button type="button" class="btn btn-secondary" @onclick="CloseModal">
                                 Cancel
@@ -35,6 +53,7 @@
     </div>
 }
 
+
 @code {
     [Parameter] public AccountInfoDto? Account { get; set; }
     [Parameter] public bool IsOpen { get; set; }
@@ -43,17 +62,46 @@
 
     private AmountDto model = new();
     private bool isLoading;
+    private string? errorMessage;
+
+    private List<AccountInfoDto> OtherAccounts = new();
+    private int? SelectedAccountId { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!IsOpen || Account == null) return;
+
+        var all = await AccountService.GetAccountsByClientIdAsync(Account.ClientId);
+        OtherAccounts = all.Where(a => a.AccountId != Account.AccountId).ToList();
+    }
 
     private async Task HandleValidSubmit()
     {
         if (Account == null) return;
 
         isLoading = true;
+        errorMessage = null;
+
         try
         {
-            await AccountService.TopUpAccountAsync(Account.AccountId, model.Amount);
+            if (SelectedAccountId == null)
+            {
+                await AccountService.TopUpAccountAsync(Account.AccountId, model.Amount);
+            }
+            else
+            {
+                await AccountService.TransferAsync(
+                    fromAccountId: SelectedAccountId.Value,
+                    toAccountId: Account.AccountId,
+                    amount: model.Amount);
+            }
+
             await OnSuccess.InvokeAsync();
             await CloseModal();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
         }
         finally
         {
@@ -63,6 +111,10 @@
 
     private async Task CloseModal()
     {
+        errorMessage = null;
+        model.Amount = 0;
+        SelectedAccountId = null;
         await OnClose.InvokeAsync();
     }
 }
+

@@ -1,7 +1,5 @@
 ﻿using Data.DTOs;
 using Data.Repositories;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Data.Services
 {
@@ -34,5 +32,9 @@ namespace Data.Services
             await _accountRepository.WithdrawAccountAsync(accountId, amount);
         }
 
+        public async Task TransferAsync(int fromAccountId, int toAccountId, decimal amount)
+        {
+            await _accountRepository.TransferAsync(fromAccountId, toAccountId, amount);
+        }
     }
 }

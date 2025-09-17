@@ -9,4 +9,6 @@ public interface IAccountService
     Task TopUpAccountAsync(int accountId, decimal amount);
 
     Task WithdrawAccountAsync(int accountId, decimal amount);
+
+    Task TransferAsync(int fromAccountId, int toAccountId, decimal amount);
 }

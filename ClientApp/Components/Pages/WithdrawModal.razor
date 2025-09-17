@@ -15,6 +15,17 @@
                         <DataAnnotationsValidator />
 
                         <div class="mb-3">
+                            <label class="form-label">Destination</label>
+                            <select class="form-select" @bind="SelectedAccountId">
+                                <option value="">Cash</option>
+                                @foreach (var acc in OtherAccounts)
+                                {
+                                    <option value="@acc.AccountId">@acc.AccountNumber</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Amount</label>
                             <InputNumber @bind-Value="model.Amount" class="form-control" />
                             <ValidationMessage For="@(() => model.Amount)" />
@@ -42,6 +53,7 @@
     </div>
 }
 
+
 @code {
     [Parameter] public AccountInfoDto? Account { get; set; }
     [Parameter] public bool IsOpen { get; set; }
@@ -52,28 +64,47 @@
     private bool isLoading;
     private string? errorMessage;
 
+    private List<AccountInfoDto> OtherAccounts = new();
+    private int? SelectedAccountId { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!IsOpen || Account == null) return;
+
+        var all = await AccountService.GetAccountsByClientIdAsync(Account.ClientId);
+        OtherAccounts = all.Where(a => a.AccountId != Account.AccountId).ToList();
+    }
+
     private async Task HandleValidSubmit()
     {
-        if (Account == null)
-            return;
+        if (Account == null) return;
 
         isLoading = true;
         errorMessage = null;
 
         try
         {
-            await AccountService.WithdrawAccountAsync(Account.AccountId, model.Amount);
+            if (SelectedAccountId == null)
+            {
+                await AccountService.WithdrawAccountAsync(Account.AccountId, model.Amount);
+            }
+            else
+            {
+                await AccountService.TransferAsync(
+                    fromAccountId: Account.AccountId,
+                    toAccountId: SelectedAccountId.Value,
+                    amount: model.Amount);
+            }
+
             await OnSuccess.InvokeAsync();
             await CloseModal();
         }
         catch (InvalidOperationException ex) when (ex.Message.Contains("Insufficient funds"))
         {
-            // Сообщаем пользователю о нехватке средств
             errorMessage = "Insufficient funds to complete this withdrawal.";
         }
         catch (Exception ex)
         {
-            // Общая обработка других ошибок
             errorMessage = $"Error: {ex.Message}";
         }
         finally
@@ -84,9 +115,11 @@
 
     private async Task CloseModal()
     {
-        // Сброс состояния при закрытии
         errorMessage = null;
         model.Amount = 0;
+        SelectedAccountId = null;
         await OnClose.InvokeAsync();
     }
 }
+
+
