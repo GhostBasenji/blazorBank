@@ -97,7 +97,6 @@ public class AccountRepository : IAccountRepository
         if (amount <= 0)
             throw new ArgumentException("Amount must be greater than zero.", nameof(amount));
 
-        // Загружаем оба счёта
         var fromAccount = await _context.Accounts.FindAsync(fromAccountId);
         var toAccount = await _context.Accounts.FindAsync(toAccountId);
 
@@ -108,8 +107,7 @@ public class AccountRepository : IAccountRepository
         if (fromBalance < amount)
             throw new InvalidOperationException("Insufficient funds on source account.");
 
-        // Транзакция на уровне БД
-        using var transaction = await _context.Database.BeginTransactionAsync();
+        await using var transaction = await _context.Database.BeginTransactionAsync();
 
         fromAccount.Balance = fromBalance - amount;
         toAccount.Balance = (toAccount.Balance ?? 0m) + amount;
