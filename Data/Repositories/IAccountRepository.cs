@@ -1,4 +1,5 @@
 ﻿using Data.DTOs;
+using Data.Models;
 
 namespace Data.Repositories;
 
@@ -11,4 +12,6 @@ public interface IAccountRepository
     Task WithdrawAccountAsync(int accountId, decimal amount);
 
     Task TransferAsync(int fromAccountId, int toAccountId, decimal amount);
+
+    Task<Account> GetAccountByIdAsync(int accountId);
 }
