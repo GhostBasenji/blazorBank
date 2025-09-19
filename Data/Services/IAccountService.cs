@@ -12,4 +12,6 @@ public interface IAccountService
     Task WithdrawAccountAsync(int accountId, decimal amount);
 
     Task TransferAsync(int fromAccountId, int toAccountId, decimal amount);
+
+    decimal ConvertCurrency(decimal amount, CurrencyType from, CurrencyType to);
 }
