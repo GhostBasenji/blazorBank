@@ -1,4 +1,5 @@
 ﻿using Data.DTOs;
+using Data.Models;
 
 public interface IAccountService
 {
@@ -6,7 +7,7 @@ public interface IAccountService
 
     Task<List<AccountInfoDto>> SearchAccountsAsync(int clientId, string? searchTerm);
 
-    Task TopUpAccountAsync(int accountId, decimal amount);
+    Task TopUpAccountAsync(int accountId, decimal amount, CurrencyType currency);
 
     Task WithdrawAccountAsync(int accountId, decimal amount);
 

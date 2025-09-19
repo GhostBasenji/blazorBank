@@ -1,5 +1,6 @@
 ﻿using Data.Contexts;
 using Data.DTOs;
+using Data.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Data.Repositories;
@@ -18,14 +19,13 @@ public class AccountRepository : IAccountRepository
         return await _context.Accounts
             .Where(a => a.ClientId == clientId)
             .Include(a => a.Client)
-            .Include(a => a.Currency)
             .Include(a => a.Status)
             .Select(a => new AccountInfoDto
             {
                 AccountId = a.AccountId,
-                AccountNumber = a.AccountNumber,
+                AccountNumber = a.AccountNumber!,
                 FullName = a.Client.FirstName + " " + a.Client.LastName,
-                Currency = a.Currency.CurrencyCode,
+                Currency = a.Currency.ToString(),
                 Status = a.Status.StatusName,
                 Balance = a.Balance ?? 0m,
                 CreatedAt = a.CreatedAt,
@@ -38,26 +38,24 @@ public class AccountRepository : IAccountRepository
     {
         var query = _context.Accounts
             .Include(a => a.Client)
-            .Include(a => a.Currency)
             .Include(a => a.Status)
             .Where(a => a.ClientId == clientId);
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
-        {
-            query = query.Where(a => a.AccountNumber.Contains(searchTerm));
-        }
+            query = query.Where(a => a.AccountNumber!.Contains(searchTerm));
 
         return await query
             .OrderBy(a => a.AccountNumber)
             .Select(a => new AccountInfoDto
             {
                 AccountId = a.AccountId,
-                AccountNumber = a.AccountNumber,
+                AccountNumber = a.AccountNumber!,
                 FullName = a.Client.FirstName + " " + a.Client.LastName,
-                Currency = a.Currency.CurrencyCode,
+                Currency = a.Currency.ToString(),
                 Status = a.Status.StatusName,
                 Balance = a.Balance ?? 0m,
-                CreatedAt = a.CreatedAt
+                CreatedAt = a.CreatedAt,
+                ClientId = a.ClientId
             })
             .ToListAsync();
     }
@@ -114,5 +112,13 @@ public class AccountRepository : IAccountRepository
 
         await _context.SaveChangesAsync();
         await transaction.CommitAsync();
+    }
+
+    public async Task<Account> GetAccountByIdAsync(int accountId)
+    {
+        var account = await _context.Accounts.FindAsync(accountId);
+        if (account == null)
+            throw new KeyNotFoundException("Account not found.");
+        return account;
     }
 }

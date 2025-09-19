@@ -1,4 +1,5 @@
 ﻿using Data.DTOs;
+using Data.Models;
 using Data.Repositories;
 
 namespace Data.Services
@@ -17,9 +18,18 @@ namespace Data.Services
             return await _accountRepository.GetAccountsByClientIdAsync(clientId);
         }
 
-        public async Task TopUpAccountAsync(int accountId, decimal amount)
+        public async Task TopUpAccountAsync(int accountId, decimal amount, CurrencyType currency)
         {
-            await _accountRepository.TopUpAccountAsync(accountId, amount);
+            var account = await _accountRepository.GetAccountByIdAsync(accountId);
+
+            decimal finalAmount = amount;
+
+            if (account.Currency != currency)
+            {
+                finalAmount = ConvertCurrency(amount, currency, account.Currency);
+            }
+
+            await _accountRepository.TopUpAccountAsync(accountId, finalAmount);
         }
 
         public async Task<List<AccountInfoDto>> SearchAccountsAsync(int clientId, string? searchTerm)
@@ -35,6 +45,13 @@ namespace Data.Services
         public async Task TransferAsync(int fromAccountId, int toAccountId, decimal amount)
         {
             await _accountRepository.TransferAsync(fromAccountId, toAccountId, amount);
+        }
+
+        private decimal ConvertCurrency(decimal amount, CurrencyType from, CurrencyType to)
+        {
+            if (from == CurrencyType.USD && to == CurrencyType.GEL) return amount * 2.7m;
+            if (from == CurrencyType.GEL && to == CurrencyType.USD) return amount / 2.7m;
+            return amount;
         }
     }
 }

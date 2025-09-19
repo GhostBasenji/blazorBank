@@ -1,4 +1,5 @@
 ﻿@using Data.DTOs
+@using Data.Models
 @inject IAccountService AccountService
 
 @if (IsOpen && Account != null)
@@ -31,6 +32,16 @@
                             <ValidationMessage For="@(() => model.Amount)" />
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label">Currency</label>
+                            <select class="form-select" @bind="SelectedCurrency">
+                                @foreach (var cur in Enum.GetValues<CurrencyType>())
+                                {
+                                    <option value="@cur">@cur</option>
+                                }
+                            </select>
+                        </div>
+
                         @if (!string.IsNullOrEmpty(errorMessage))
                         {
                             <div class="alert alert-danger py-2">
@@ -53,19 +64,19 @@
     </div>
 }
 
-
 @code {
     [Parameter] public AccountInfoDto? Account { get; set; }
     [Parameter] public bool IsOpen { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnSuccess { get; set; }
 
-    private readonly AmountDto model = new();
+    private AmountDto model = new();
     private bool isLoading;
     private string? errorMessage;
 
     private List<AccountInfoDto> OtherAccounts = new();
     private int? SelectedAccountId { get; set; }
+    private CurrencyType SelectedCurrency { get; set; } = CurrencyType.GEL;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -99,10 +110,6 @@
             await OnSuccess.InvokeAsync();
             await CloseModal();
         }
-        catch (InvalidOperationException ex) when (ex.Message.Contains("Insufficient funds"))
-        {
-            errorMessage = "Insufficient funds to complete this withdrawal.";
-        }
         catch (Exception ex)
         {
             errorMessage = $"Error: {ex.Message}";
@@ -118,8 +125,7 @@
         errorMessage = null;
         model.Amount = 0;
         SelectedAccountId = null;
+        SelectedCurrency = CurrencyType.GEL;
         await OnClose.InvokeAsync();
     }
 }
-
-
