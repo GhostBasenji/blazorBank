@@ -50,6 +50,16 @@
                             </div>
                         }
 
+                        <div class="mb-3">
+                            <label class="form-label">Currency</label>
+                            <select class="form-select" @bind="SelectedCurrency">
+                                @foreach (var cur in Enum.GetValues<CurrencyType>())
+                                {
+                                    <option value="@cur">@cur</option>
+                                }
+                            </select>
+                        </div>
+
                         @if (!string.IsNullOrEmpty(errorMessage))
                         {
                             <div class="alert alert-danger py-2">
