@@ -42,6 +42,24 @@
                             </select>
                         </div>
 
+                        @if (Account != null && model.Amount > 0)
+                        {
+                            <div class="mb-3">
+                                <label class="form-label">Converted amount (@Account.Currency):</label>
+                                <div>@ConvertedAmount.ToString("0.##")</div>
+                            </div>
+                        }
+
+                        <div class="mb-3">
+                            <label class="form-label">Currency</label>
+                            <select class="form-select" @bind="SelectedCurrency">
+                                @foreach (var cur in Enum.GetValues<CurrencyType>())
+                                {
+                                    <option value="@cur">@cur</option>
+                                }
+                            </select>
+                        </div>
+
                         @if (!string.IsNullOrEmpty(errorMessage))
                         {
                             <div class="alert alert-danger py-2">
@@ -84,6 +102,15 @@
 
         var all = await AccountService.GetAccountsByClientIdAsync(Account.ClientId);
         OtherAccounts = all.Where(a => a.AccountId != Account.AccountId).ToList();
+    }
+
+    private decimal ConvertedAmount
+    {
+        get
+        {
+            if (Account == null) return 0m;
+            return AccountService.ConvertCurrency(model.Amount, SelectedCurrency, Enum.Parse<CurrencyType>(Account.Currency));
+        }
     }
 
     private async Task HandleValidSubmit()

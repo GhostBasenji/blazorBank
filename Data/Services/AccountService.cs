@@ -47,7 +47,7 @@ namespace Data.Services
             await _accountRepository.TransferAsync(fromAccountId, toAccountId, amount);
         }
 
-        private decimal ConvertCurrency(decimal amount, CurrencyType from, CurrencyType to)
+        public decimal ConvertCurrency(decimal amount, CurrencyType from, CurrencyType to)
         {
             if (from == CurrencyType.USD && to == CurrencyType.GEL) return amount * 2.7m;
             if (from == CurrencyType.GEL && to == CurrencyType.USD) return amount / 2.7m;
