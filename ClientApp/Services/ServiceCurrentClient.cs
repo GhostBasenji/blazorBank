@@ -1,6 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using Data.Contexts;
 using Data.Models;
-using Data.Contexts;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace ClientApp.Services

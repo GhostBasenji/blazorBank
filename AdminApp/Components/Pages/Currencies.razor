@@ -1,0 +1,67 @@
+﻿@page "/currencies"
+@using Data.Models
+@using Data.Services
+@inject ICurrencyService CurrencyService
+@rendermode InteractiveServer
+
+<h3>Manage Currencies</h3>
+
+<div class="row mb-3">
+    <div class="col">
+        <input class="form-control" placeholder="Currency Code" @bind="newCurrencyCode" />
+    </div>
+    <div class="col">
+        <input class="form-control" placeholder="Currency Name" @bind="newCurrencyName" />
+    </div>
+    <div class="col-auto">
+        <button class="btn btn-primary" @onclick="AddCurrency">Add</button>
+    </div>
+</div>
+
+<h5>Existing Currencies</h5>
+<ul class="list-group">
+    @foreach (var cur in currencies)
+    {
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            @cur.CurrencyCode - @cur.CurrencyName
+            <button class="btn btn-sm btn-danger" @onclick="() => DeleteCurrency(cur.CurrencyId)">Delete</button>
+        </li>
+    }
+</ul>
+
+@code {
+    private string? newCurrencyCode;
+    private string? newCurrencyName;
+    private List<Currency> currencies = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        currencies = await CurrencyService.GetAllAsync();
+    }
+
+    private async Task AddCurrency()
+    {
+        if (string.IsNullOrWhiteSpace(newCurrencyCode) || string.IsNullOrWhiteSpace(newCurrencyName))
+            return;
+
+        var currency = new Currency
+        {
+            CurrencyCode = newCurrencyCode.Trim().ToUpperInvariant(),
+            CurrencyName = newCurrencyName.Trim(),
+            IsActive = true
+        };
+
+        await CurrencyService.AddAsync(currency);
+
+        newCurrencyCode = "";
+        newCurrencyName = "";
+
+        currencies = await CurrencyService.GetAllAsync();
+    }
+
+    private async Task DeleteCurrency(int id)
+    {
+        await CurrencyService.DeleteAsync(id);
+        currencies = await CurrencyService.GetAllAsync();
+    }
+}

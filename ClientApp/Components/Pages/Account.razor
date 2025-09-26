@@ -46,7 +46,6 @@ else
                             }
                         </th>
                         <th>Client name</th>
-                        <th>Currency</th>
                         <th>Status</th>
                         <th>Balance</th>
                         <th>Created date</th>
@@ -59,19 +58,16 @@ else
                         <tr>
                             <td>@acc.AccountNumber</td>
                             <td class="text-primary fw-medium">@acc.FullName</td>
-                            <td class="text-primary">@acc.Currency</td>
                             <td>
                                 <span class="badge bg-light text-dark border px-3 py-1 rounded-pill shadow-sm">@acc.Status</span>
                             </td>
                             <td>@acc.Balance?.ToString("C")</td>
                             <td>@acc.CreatedAt?.ToString("yyyy-MM-dd")</td>
                             <td>
-                                <button class="btn btn-sm btn-primary me-1"
-                                        @onclick="() => ShowTopUpModal(acc)">
+                                <button class="btn btn-sm btn-primary me-1" @onclick="() => ShowTopUpModal(acc)">
                                     Top Up
                                 </button>
-                                <button class="btn btn-sm btn-danger"
-                                        @onclick="() => ShowWithdrawModal(acc)">
+                                <button class="btn btn-sm btn-danger" @onclick="() => ShowWithdrawModal(acc)">
                                     Withdraw
                                 </button>
                             </td>
@@ -89,9 +85,9 @@ else
             OnClose="HandleCloseModal" />
 
 <WithdrawModal Account="SelectedAccount"
-           IsOpen="IsWithdrawModalOpen"
-           OnSuccess="HandleWithdrawSuccess"
-           OnClose="HandleCloseWithdrawModal" />
+               IsOpen="IsWithdrawModalOpen"
+               OnSuccess="HandleWithdrawSuccess"
+               OnClose="HandleCloseWithdrawModal" />
 
 @code {
     private List<AccountInfoDto>? accounts;
@@ -105,6 +101,7 @@ else
 
     private AccountInfoDto? SelectedAccount { get; set; }
     private bool IsTopUpModalOpen { get; set; }
+    private bool IsWithdrawModalOpen { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -210,8 +207,6 @@ else
         IsTopUpModalOpen = false;
     }
 
-    private bool IsWithdrawModalOpen { get; set; }
-
     private void ShowWithdrawModal(AccountInfoDto account)
     {
         SelectedAccount = account;
@@ -228,5 +223,4 @@ else
     {
         IsWithdrawModalOpen = false;
     }
-
 }

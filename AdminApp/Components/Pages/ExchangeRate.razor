@@ -1,0 +1,96 @@
+﻿@page "/exchange-rates"
+@using Data.Models
+@using Data.Services
+@inject ICurrencyService CurrencyService
+@inject IExchangeRateService ExchangeRateService
+@rendermode InteractiveServer
+
+<h5>Set Exchange Rate</h5>
+
+<div class="row mb-3">
+    <div class="col">
+        <select class="form-select" @bind="baseId">
+            <option value="0">Base currency</option>
+            @foreach (var c in currencies)
+            {
+                <option value="@c.CurrencyId">@c.CurrencyName (@c.CurrencyCode)</option>
+            }
+        </select>
+    </div>
+    <div class="col">
+        <select class="form-select" @bind="targetId">
+            <option value="0">Target currency</option>
+            @foreach (var c in currencies)
+            {
+                <option value="@c.CurrencyId">@c.CurrencyName (@c.CurrencyCode)</option>
+            }
+        </select>
+    </div>
+    <div class="col">
+        <input type="number" step="0.0001" class="form-control"
+               placeholder="Rate" @bind="rate" />
+    </div>
+    <div class="col">
+        <button class="btn btn-success" @onclick="SaveRate">Save</button>
+    </div>
+</div>
+
+<h5 class="mt-4">Current Rates</h5>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Base</th>
+            <th>Target</th>
+            <th>Rate</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in rates)
+        {
+            <tr>
+                <td>@r.BaseCurrency.CurrencyName (@r.BaseCurrency.CurrencyCode)</td>
+                <td>@r.TargetCurrency.CurrencyName (@r.TargetCurrency.CurrencyCode)</td>
+                <td>@r.Rate</td>
+                <td>
+                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteRate(r.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    private List<Currency> currencies = new();
+    private List<Data.Models.ExchangeRate> rates = new();
+    private int baseId;
+    private int targetId;
+    private decimal rate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        currencies = await CurrencyService.GetAllAsync();
+        rates = await ExchangeRateService.GetAllAsync();
+    }
+
+    private async Task SaveRate()
+    {
+        if (baseId == 0 || targetId == 0 || rate <= 0)
+            return;
+
+        await ExchangeRateService.SetRateAsync(baseId, targetId, rate);
+        rates = await ExchangeRateService.GetAllAsync();
+
+        // Сброс полей после сохранения
+        baseId = 0;
+        targetId = 0;
+        rate = 0;
+    }
+
+    private async Task DeleteRate(int id)
+    {
+        await ExchangeRateService.DeleteAsync(id);
+        rates = await ExchangeRateService.GetAllAsync();
+    }
+}
+
