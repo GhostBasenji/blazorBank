@@ -28,6 +28,8 @@ public partial class BlazorBankContext : DbContext
 
     public virtual DbSet<EmployeeAction> EmployeeActions { get; set; }
 
+    public virtual DbSet<ExchangeRate> ExchangeRates { get; set; }
+
     public virtual DbSet<Transaction> Transactions { get; set; }
 
     public virtual DbSet<TransactionType> TransactionTypes { get; set; }
@@ -40,35 +42,48 @@ public partial class BlazorBankContext : DbContext
     {
         modelBuilder.Entity<Account>(entity =>
         {
-            entity.HasKey(e => e.AccountId);
+            entity.HasKey(e => e.AccountId).HasName("PK__Accounts__349DA58690414907");
 
-            entity.HasIndex(e => e.AccountNumber).IsUnique();
+            entity.HasIndex(e => e.AccountNumber, "IX_Accounts_AccountNumber");
 
+            entity.HasIndex(e => e.ClientId, "IX_Accounts_ClientID");
+
+            entity.HasIndex(e => e.CurrencyId, "IX_Accounts_CurrencyID");
+
+            entity.HasIndex(e => e.DeletionDate, "IX_Accounts_DeletionDate");
+
+            entity.HasIndex(e => e.StatusId, "IX_Accounts_StatusID");
+
+            entity.HasIndex(e => e.AccountNumber, "UQ__Accounts__BE2ACD6F9A622514").IsUnique();
+
+            entity.Property(e => e.AccountId).HasColumnName("AccountID");
             entity.Property(e => e.AccountNumber).HasMaxLength(30);
             entity.Property(e => e.Balance)
-                  .HasColumnType("decimal(18,2)")
-                  .HasDefaultValue(0.00m);
-
+                .HasDefaultValue(0.00m)
+                .HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.ClientId).HasColumnName("ClientID");
             entity.Property(e => e.CreatedAt)
-                  .HasDefaultValueSql("getdate()")
-                  .HasColumnType("datetime");
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.CurrencyId).HasColumnName("CurrencyID");
+            entity.Property(e => e.DeletionDate).HasColumnType("datetime");
+            entity.Property(e => e.StatusId).HasColumnName("StatusID");
 
-            // Хранение enum как int
-            entity.Property(e => e.Currency)
-                  .HasConversion<int>()
-                  .HasColumnName("Currency");
+            entity.HasOne(d => d.Client).WithMany(p => p.Accounts)
+                .HasForeignKey(d => d.ClientId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Accounts__Client__403A8C7D");
 
-            entity.HasOne(d => d.Client)
-                  .WithMany(p => p.Accounts)
-                  .HasForeignKey(d => d.ClientId)
-                  .OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasOne(d => d.CurrencyNavigation).WithMany(p => p.Accounts)
+                .HasForeignKey(d => d.CurrencyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Accounts__Curren__412EB0B6");
 
-            entity.HasOne(d => d.Status)
-                  .WithMany(p => p.Accounts)
-                  .HasForeignKey(d => d.StatusId)
-                  .OnDelete(DeleteBehavior.ClientSetNull);
+            entity.HasOne(d => d.Status).WithMany(p => p.Accounts)
+                .HasForeignKey(d => d.StatusId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Accounts__Status__4222D4EF");
         });
-
 
         modelBuilder.Entity<AccountStatus>(entity =>
         {
@@ -135,6 +150,7 @@ public partial class BlazorBankContext : DbContext
             entity.Property(e => e.CurrencyId).HasColumnName("CurrencyID");
             entity.Property(e => e.CurrencyCode).HasMaxLength(3);
             entity.Property(e => e.CurrencyName).HasMaxLength(50);
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
         });
 
         modelBuilder.Entity<Employee>(entity =>
@@ -178,6 +194,24 @@ public partial class BlazorBankContext : DbContext
                 .HasForeignKey(d => d.EmployeeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__EmployeeA__Emplo__440B1D61");
+        });
+
+        modelBuilder.Entity<ExchangeRate>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Exchange__3214EC07F69BC385");
+
+            entity.Property(e => e.Rate).HasColumnType("decimal(18, 6)");
+            entity.Property(e => e.UpdatedAt).HasDefaultValueSql("(sysutcdatetime())");
+
+            entity.HasOne(d => d.BaseCurrency).WithMany(p => p.ExchangeRateBaseCurrencies)
+                .HasForeignKey(d => d.BaseCurrencyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ExchangeRates_Base");
+
+            entity.HasOne(d => d.TargetCurrency).WithMany(p => p.ExchangeRateTargetCurrencies)
+                .HasForeignKey(d => d.TargetCurrencyId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ExchangeRates_Target");
         });
 
         modelBuilder.Entity<Transaction>(entity =>
