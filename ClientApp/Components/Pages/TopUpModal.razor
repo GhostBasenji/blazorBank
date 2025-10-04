@@ -2,7 +2,6 @@
 @using Data.Models
 @inject IAccountService AccountService
 @inject ICurrencyService CurrencyService
-@inject IExchangeRateService ExchangeRateService
 @rendermode InteractiveServer
 
 @if (IsOpen && Account != null)
@@ -31,25 +30,25 @@
 
                         <div class="mb-3">
                             <label class="form-label">Amount</label>
-                            <InputNumber @bind-Value="model.Amount" class="form-control" />
+                            <InputNumber @bind-Value="model.Amount" @bind-Value:after="CalculateConvertedAmount" class="form-control" />
                             <ValidationMessage For="@(() => model.Amount)" />
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label">Currency</label>
-                            <select class="form-select" @bind="SelectedCurrency">
-                                @foreach (var cur in Enum.GetValues<CurrencyType>())
+                            <select class="form-select" @bind="SelectedCurrencyId" @bind:after="CalculateConvertedAmount">
+                                @foreach (var cur in AvailableCurrencies)
                                 {
-                                    <option value="@cur">@cur</option>
+                                    <option value="@cur.CurrencyId">@cur.CurrencyCode - @cur.CurrencyName</option>
                                 }
                             </select>
                         </div>
 
-                        @if (Account != null && model.Amount > 0)
+                        @if (Account != null && model.Amount > 0 && ConvertedAmount.HasValue)
                         {
                             <div class="mb-3">
                                 <label class="form-label">Converted amount (@Account.Currency):</label>
-                                <div>@ConvertedAmount.ToString("0.##")</div>
+                                <div class="fw-bold">@ConvertedAmount.Value.ToString("N2")</div>
                             </div>
                         }
 
@@ -84,27 +83,59 @@
     private string? errorMessage;
 
     private List<AccountInfoDto> OtherAccounts = new();
+    private List<Currency> AvailableCurrencies = new();
     private int? SelectedAccountId { get; set; }
-    private CurrencyType SelectedCurrency { get; set; } = CurrencyType.GEL;
+    private int SelectedCurrencyId { get; set; }
+    private decimal? ConvertedAmount { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
         if (!IsOpen || Account == null) return;
 
+        isLoading = false;
+        errorMessage = null;
+        model.Amount = 0;
+        ConvertedAmount = null;
+
         var all = await AccountService.GetAccountsByClientIdAsync(Account.ClientId);
         OtherAccounts = all.Where(a => a.AccountId != Account.AccountId).ToList();
+
+        AvailableCurrencies = await CurrencyService.GetAllAsync();
+        if (AvailableCurrencies.Any())
+        {
+            SelectedCurrencyId = AvailableCurrencies.First().CurrencyId;
+            await CalculateConvertedAmount();
+        }
     }
 
-    private decimal ConvertedAmount
+    private async Task CalculateConvertedAmount()
     {
-        get
+        if (Account == null || model.Amount <= 0 || SelectedCurrencyId == 0) 
         {
-            if (Account == null || model.Amount <= 0) return 0m;
+            ConvertedAmount = null;
+            return;
+        }
 
-            var targetCurrency = Enum.Parse<CurrencyType>(Account.Currency);
-            if (SelectedCurrency == targetCurrency) return model.Amount;
+        try
+        {
+            var selectedCurrency = AvailableCurrencies.FirstOrDefault(c => c.CurrencyId == SelectedCurrencyId);
+            if (selectedCurrency == null) return;
 
-            return CurrencyService.ConvertAsync(model.Amount, SelectedCurrency, targetCurrency).Result;
+            if (selectedCurrency.CurrencyCode == Account.Currency)
+            {
+                ConvertedAmount = model.Amount;
+            }
+            else
+            {
+                ConvertedAmount = await CurrencyService.ConvertAsync(
+                    model.Amount, 
+                    selectedCurrency.CurrencyCode, 
+                    Account.Currency);
+            }
+        }
+        catch
+        {
+            ConvertedAmount = null;
         }
     }
 
@@ -117,9 +148,16 @@
 
         try
         {
+            var selectedCurrency = AvailableCurrencies.FirstOrDefault(c => c.CurrencyId == SelectedCurrencyId);
+            if (selectedCurrency == null)
+            {
+                errorMessage = "Please select a valid currency.";
+                return;
+            }
+
             if (SelectedAccountId == null)
             {
-                await AccountService.TopUpAccountAsync(Account.AccountId, model.Amount, SelectedCurrency);
+                await AccountService.TopUpAccountAsync(Account.AccountId, model.Amount, selectedCurrency.CurrencyCode);
             }
             else
             {
@@ -146,8 +184,12 @@
     {
         model.Amount = 0;
         SelectedAccountId = null;
-        SelectedCurrency = CurrencyType.GEL;
+        if (AvailableCurrencies.Any())
+        {
+            SelectedCurrencyId = AvailableCurrencies.First().CurrencyId;
+        }
         errorMessage = null;
+        ConvertedAmount = null;
         await OnClose.InvokeAsync();
     }
 }

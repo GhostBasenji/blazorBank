@@ -13,5 +13,5 @@ public interface IAccountRepository
 
     Task TransferAsync(int fromAccountId, int toAccountId, decimal amount);
 
-    Task<Account> GetAccountByIdAsync(int accountId);
+    Task<Account?> GetAccountByIdAsync(int accountId);
 }
