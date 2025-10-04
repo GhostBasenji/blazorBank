@@ -198,13 +198,15 @@ else
 
     private async Task HandleTopUpSuccess()
     {
-        await LoadAccountsAsync();
         IsTopUpModalOpen = false;
+        SelectedAccount = null;
+        await LoadAccountsAsync();                
     }
 
     private void HandleCloseModal()
     {
         IsTopUpModalOpen = false;
+        SelectedAccount = null;
     }
 
     private void ShowWithdrawModal(AccountInfoDto account)
@@ -215,12 +217,14 @@ else
 
     private async Task HandleWithdrawSuccess()
     {
-        await LoadAccountsAsync();
         IsWithdrawModalOpen = false;
+        SelectedAccount = null;
+        await LoadAccountsAsync();
     }
 
     private void HandleCloseWithdrawModal()
     {
         IsWithdrawModalOpen = false;
+        SelectedAccount = null;
     }
 }
