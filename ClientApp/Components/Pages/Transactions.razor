@@ -1,0 +1,101 @@
+﻿@page "/transactions"
+@using Data.DTOs
+@inject ClientApp.Services.ServiceCurrentClient CurrentClientService
+@inject ITransactionService TransactionService
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<h3 class="mb-4 fw-bold">Transaction History</h3>
+
+@if (isLoading)
+{
+    <p>Loading transactions...</p>
+}
+else if (transactions is null || transactions.Count == 0)
+{
+    <p>No transactions found.</p>
+}
+else
+{
+    <div class="d-flex justify-content-between mb-3">
+        <div>
+            <span class="fw-bold">Total Transactions: @transactions.Count</span>
+        </div>
+        <div>
+            <button class="btn btn-secondary" @onclick="GoBack">Back to Accounts</button>
+        </div>
+    </div>
+
+    <div class="table-container mt-3">
+        <table class="table custom-table text-center align-middle">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Account Number</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var transaction in transactions)
+                {
+                    <tr>
+                        <td>@transaction.TransactionDate?.ToString("yyyy-MM-dd HH:mm:ss")</td>
+                        <td>@transaction.AccountNumber</td>
+                        <td>
+                            <span class="badge
+                                        @(transaction.TransactionType == "TopUp" || transaction.TransactionType == "Transfer In" ? "bg-success" : "bg-danger")">
+                                @transaction.TransactionType
+                            </span>
+                        </td>
+                        <td class="fw-bold @(transaction.TransactionType == "TopUp" || transaction.TransactionType == "Transfer In" ? "text-success" : "text-danger")">
+                            @(transaction.TransactionType == "TopUp" || transaction.TransactionType == "Transfer In" ? "+" : "-")@transaction.Amount.ToString("C")
+                        </td>
+                        <td class="text-muted">@transaction.Description</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private List<TransactionDto>? transactions;
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTransactionsAsync();
+    }
+
+    private async Task LoadTransactionsAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            var client = await CurrentClientService.GetCurrentClientAsync();
+            if (client == null)
+            {
+                Nav.NavigateTo("/login");
+                return;
+            }
+
+            transactions = await TransactionService.GetAllTransactionsAsync(client.ClientId);
+        }
+        catch
+        {
+            transactions = new List<TransactionDto>();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        Nav.NavigateTo("/account");
+    }
+}

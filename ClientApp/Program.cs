@@ -16,6 +16,9 @@ builder.Services.AddScoped<ICurrencyService, CurrencyService>();
 builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
 builder.Services.AddScoped<ICurrencyRateService, CurrencyRateService>();
 
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
