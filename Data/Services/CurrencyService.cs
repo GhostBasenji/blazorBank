@@ -30,6 +30,13 @@ public class CurrencyService : ICurrencyService
             .FirstOrDefaultAsync(c => c.CurrencyId == id && c.IsActive);
     }
 
+    public async Task<Currency?> GetByCodeAsync(string code)
+    {
+        return await _context.Currencies
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.CurrencyCode == code && c.IsActive);
+    }
+
     public async Task AddAsync(Currency currency)
     {
         _context.Currencies.Add(currency);
@@ -46,8 +53,8 @@ public class CurrencyService : ICurrencyService
         }
     }
 
-    public async Task<decimal> ConvertAsync(decimal amount, CurrencyType from, CurrencyType to)
+    public async Task<decimal> ConvertAsync(decimal amount, string fromCurrencyCode, string toCurrencyCode)
     {
-        return await _rateService.ConvertAsync(amount, from, to);
+        return await _rateService.ConvertAsync(amount, fromCurrencyCode, toCurrencyCode);
     }
 }
