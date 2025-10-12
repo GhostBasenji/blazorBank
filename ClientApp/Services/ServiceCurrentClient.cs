@@ -6,37 +6,50 @@ namespace ClientApp.Services
 {
     public class ServiceCurrentClient
     {
-        private readonly ProtectedSessionStorage _sessionStorage;
+        private readonly ProtectedLocalStorage _localStorage;
         private readonly BlazorBankContext _dbContext;
 
-        public ServiceCurrentClient(ProtectedSessionStorage sessionStorage, BlazorBankContext dbContext)
+        public ServiceCurrentClient(ProtectedLocalStorage localStorage, BlazorBankContext dbContext)
         {
-            _sessionStorage = sessionStorage;
+            _localStorage = localStorage;
             _dbContext = dbContext;
         }
 
-        // Сохраняем ID клиента в sessionStorage (состояние в сервисе не храним)
-        public async Task SetClientAsync(Client client)
+        public async Task SetClientAsync(Client client, bool rememberMe = true)
         {
-            await _sessionStorage.SetAsync("LoggedInClientId", client.ClientId);
+            if (rememberMe)
+            {
+                await _localStorage.SetAsync("LoggedInClientId", client.ClientId);
+            }
         }
 
-        // Получаем клиента из sessionStorage и базы, возвращая его вызывающей стороне
         public async Task<Client?> GetCurrentClientAsync()
         {
-            var result = await _sessionStorage.GetAsync<int>("LoggedInClientId");
-            if (result.Success)
+            try
             {
-                int clientId = result.Value;
-                return await _dbContext.Clients.FindAsync(clientId);
+                var result = await _localStorage.GetAsync<int>("LoggedInClientId");
+                if (result.Success)
+                {
+                    int clientId = result.Value;
+                    return await _dbContext.Clients.FindAsync(clientId);
+                }
+            }
+            catch
+            {
+                
             }
             return null;
         }
 
-        // Очистка sessionStorage при логауте
+        public async Task<bool> IsAuthenticatedAsync()
+        {
+            var client = await GetCurrentClientAsync();
+            return client != null;
+        }
+
         public async Task LogoutAsync()
         {
-            await _sessionStorage.DeleteAsync("LoggedInClientId");
+            await _localStorage.DeleteAsync("LoggedInClientId");
         }
     }
 }
