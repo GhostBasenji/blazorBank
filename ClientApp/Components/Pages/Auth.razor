@@ -1,0 +1,260 @@
+﻿@page "/"
+@page "/login"
+@page "/auth"
+@layout GuestLayout
+@using ClientApp.Components.Layout
+@using ClientApp.Services
+@using Data.Services
+@using System.ComponentModel.DataAnnotations
+@inject IClientAuthService AuthService
+@inject NavigationManager Nav
+@inject ServiceCurrentClient CurrentClientService
+@rendermode InteractiveServer
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 90vh;">
+    <div class="card p-4" style="width: 450px;">
+
+        <!-- Приветственная секция - прямо над формой -->
+        <div class="mb-3 text-center">
+            <h1 class="h3 mb-1">Welcome to <span class="text-primary">Bank Blazor</span></h1>
+        </div>
+
+        <!-- Переключатель табов -->
+        <ul class="nav nav-tabs mb-4" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(isLoginMode ? "active" : "")"
+                        @onclick="() => SwitchMode(true)">
+                    Sign In
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(!isLoginMode ? "active" : "")"
+                        @onclick="() => SwitchMode(false)">
+                    Register
+                </button>
+            </li>
+        </ul>
+
+        @if (isLoginMode)
+        {
+            <!-- Форма входа -->
+            <div>
+                <div class="mb-3">
+                    <label class="form-label">Username or Email</label>
+                    <input type="text" class="form-control" placeholder="Enter username or email" @bind="loginModel.Login" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-control" placeholder="Enter password" @bind="loginModel.Password" />
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="rememberMe" @bind="loginModel.RememberMe" />
+                    <label class="form-check-label" for="rememberMe">Remember me</label>
+                </div>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger">@errorMessage</div>
+                }
+
+                <div class="d-grid">
+                    <button class="btn btn-primary" @onclick="HandleLogin" disabled="@isLoading">
+                        @(isLoading ? "Signing in..." : "Sign In")
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Форма регистрации -->
+            <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <InputText @bind-Value="registerModel.Username" class="form-control" placeholder="Enter username" />
+                    <ValidationMessage For="@(() => registerModel.Username)" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <InputText @bind-Value="registerModel.Email" type="email" class="form-control" placeholder="Enter email" />
+                    <ValidationMessage For="@(() => registerModel.Email)" />
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">First Name</label>
+                        <InputText @bind-Value="registerModel.FirstName" class="form-control" placeholder="First name" />
+                        <ValidationMessage For="@(() => registerModel.FirstName)" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Last Name</label>
+                        <InputText @bind-Value="registerModel.LastName" class="form-control" placeholder="Last name" />
+                        <ValidationMessage For="@(() => registerModel.LastName)" />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Phone (optional)</label>
+                    <InputText @bind-Value="registerModel.Phone" class="form-control" placeholder="Enter phone" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <InputText @bind-Value="registerModel.Password" type="password" class="form-control" placeholder="Enter password" />
+                    <ValidationMessage For="@(() => registerModel.Password)" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Confirm Password</label>
+                    <InputText @bind-Value="registerModel.ConfirmPassword" type="password" class="form-control" placeholder="Confirm password" />
+                    <ValidationMessage For="@(() => registerModel.ConfirmPassword)" />
+                </div>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger">@errorMessage</div>
+                }
+
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="alert alert-success">@successMessage</div>
+                }
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary" disabled="@isLoading">
+                        @(isLoading ? "Creating account..." : "Register")
+                    </button>
+                </div>
+            </EditForm>
+        }
+    </div>
+</div>
+
+@code {
+    private bool isLoginMode = true;
+    private bool isLoading = false;
+    private string? errorMessage;
+    private string? successMessage;
+
+    private LoginModel loginModel = new();
+    private RegisterModel registerModel = new();
+
+    private void SwitchMode(bool loginMode)
+    {
+        isLoginMode = loginMode;
+        errorMessage = null;
+        successMessage = null;
+    }
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+        errorMessage = null;
+
+        try
+        {
+            var client = await AuthService.AuthenticateAsync(loginModel.Login, loginModel.Password);
+
+            if (client is not null)
+            {
+                await CurrentClientService.SetClientAsync(client, loginModel.RememberMe);
+                Nav.NavigateTo("/account", forceLoad: true);
+            }
+            else
+            {
+                errorMessage = "Invalid username/email or password.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleRegister()
+    {
+        isLoading = true;
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            var (success, error) = await AuthService.RegisterAsync(
+                registerModel.Username,
+                registerModel.Email,
+                registerModel.Password,
+                registerModel.FirstName,
+                registerModel.LastName,
+                registerModel.Phone
+            );
+
+            if (success)
+            {
+                successMessage = "Registration successful! Logging in...";
+
+                // Автоматический вход после регистрации
+                var client = await AuthService.AuthenticateAsync(registerModel.Username, registerModel.Password);
+                if (client != null)
+                {
+                    await CurrentClientService.SetClientAsync(client, rememberMe: true);
+                    await Task.Delay(1000);
+                    Nav.NavigateTo("/account", forceLoad: true);
+                }
+            }
+            else
+            {
+                errorMessage = error;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    public class LoginModel
+    {
+        public string Login { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public bool RememberMe { get; set; } = true;
+    }
+
+    public class RegisterModel
+    {
+        [Required(ErrorMessage = "Username is required")]
+        [StringLength(50, MinimumLength = 3, ErrorMessage = "Username must be between 3 and 50 characters")]
+        public string Username { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "First name is required")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Last name is required")]
+        public string LastName { get; set; } = string.Empty;
+
+        public string? Phone { get; set; }
+
+        [Required(ErrorMessage = "Password is required")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Please confirm password")]
+        [Compare(nameof(Password), ErrorMessage = "Passwords do not match")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+    }
+}
