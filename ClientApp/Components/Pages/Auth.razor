@@ -162,6 +162,10 @@
             if (client is not null)
             {
                 await CurrentClientService.SetClientAsync(client, loginModel.RememberMe);
+
+                // Добавляем задержку перед навигацией, чтобы LocalStorage успел записать
+                await Task.Delay(200);
+
                 Nav.NavigateTo("/account", forceLoad: true);
             }
             else
