@@ -7,6 +7,8 @@
 @inject ITransactionService TransactionService
 @rendermode InteractiveServer
 
+
+
 <h3 class="mb-4 fw-bold">Accounts</h3>
 
 @if (isLoading)
@@ -172,7 +174,7 @@ else
             var client = await CurrentClientService.GetCurrentClientAsync();
             if (client == null)
             {
-                Nav.NavigateTo("/login");
+                Nav.NavigateTo("/", forceLoad: true);
                 return;
             }
 
@@ -192,7 +194,11 @@ else
     private async Task OnSearch()
     {
         var client = await CurrentClientService.GetCurrentClientAsync();
-        if (client == null) return;
+        if (client == null)
+        {
+            Nav.NavigateTo("/", forceLoad: true);
+            return;
+        }
 
         if (accounts != null && accounts.Count <= LocalFilterThreshold)
         {

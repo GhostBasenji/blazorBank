@@ -78,7 +78,7 @@ else
             var client = await CurrentClientService.GetCurrentClientAsync();
             if (client == null)
             {
-                Nav.NavigateTo("/login");
+                Nav.NavigateTo("/", forceLoad: true);
                 return;
             }
 
