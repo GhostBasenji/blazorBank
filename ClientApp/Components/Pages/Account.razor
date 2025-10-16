@@ -21,10 +21,20 @@ else if (accounts is null || accounts.Count == 0)
 }
 else
 {
-    <div class="d-flex justify-content-end mb-3">
-        <InputText @bind-Value="searchText" placeholder="Enter account number..." class="form-control w-25 me-2" />
-        <button class="btn btn-primary" @onclick="OnSearch">Search</button>
-        <button class="btn btn-secondary ms-2" @onclick="OnReset">Reset</button>
+    <div class="d-flex justify-content-between mb-3">
+        <!-- Кнопка Add Account слева -->
+        <div>
+            <button class="btn btn-success" @onclick="ShowAddAccountModal">
+                <span class="bi bi-plus-circle"></span> Add Account
+            </button>
+        </div>
+
+        <!-- Поиск справа -->
+        <div class="d-flex">
+            <InputText @bind-Value="searchText" placeholder="Enter account number..." class="form-control me-2" style="width: 250px;" />
+            <button class="btn btn-primary" @onclick="OnSearch">Search</button>
+            <button class="btn btn-secondary ms-2" @onclick="OnReset">Reset</button>
+        </div>
     </div>
 
     <div class="table-container mt-3">
@@ -142,6 +152,11 @@ else
                OnSuccess="HandleWithdrawSuccess"
                OnClose="HandleCloseWithdrawModal" />
 
+<AddAccountModal ClientId="@currentClientId"
+                 IsOpen="IsAddAccountModalOpen"
+                 OnSuccess="HandleAddAccountSuccess"
+                 OnClose="HandleCloseAddAccountModal" />
+
 @code {
     private List<AccountInfoDto>? accounts;
     private List<AccountInfoDto>? sortedAccounts;
@@ -158,6 +173,9 @@ else
     private AccountInfoDto? SelectedAccount { get; set; }
     private bool IsTopUpModalOpen { get; set; }
     private bool IsWithdrawModalOpen { get; set; }
+
+    private int currentClientId;
+    private bool IsAddAccountModalOpen { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -177,6 +195,8 @@ else
                 Nav.NavigateTo("/", forceLoad: true);
                 return;
             }
+
+            currentClientId = client.ClientId;
 
             accounts = await AccountService.GetAccountsByClientIdAsync(client.ClientId);
             ApplySortingAndFiltering();
@@ -310,5 +330,22 @@ else
     {
         IsWithdrawModalOpen = false;
         SelectedAccount = null;
+    }
+
+    private void ShowAddAccountModal()
+    {
+        IsAddAccountModalOpen = true;
+    }
+
+    private async Task HandleAddAccountSuccess()
+    {
+        IsAddAccountModalOpen = false;
+        await LoadAccountsAsync();
+        await LoadRecentTransactionsAsync();
+    }
+
+    private void HandleCloseAddAccountModal()
+    {
+        IsAddAccountModalOpen = false;
     }
 }
