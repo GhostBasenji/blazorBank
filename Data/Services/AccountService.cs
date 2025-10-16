@@ -1,4 +1,5 @@
 ﻿using Data.DTOs;
+using Data.Models;
 using Data.Repositories;
 
 namespace Data.Services
@@ -66,6 +67,53 @@ namespace Data.Services
                 throw new ArgumentException("Amount must be greater than zero.", nameof(amount));
 
             await _accountRepository.TransferAsync(fromAccountId, toAccountId, amount);
+        }
+
+        public async Task<string> CreateAccountAsync(int clientId, int currencyId)
+        {
+            // Генерируем уникальный номер счета
+            string accountNumber = await GenerateAccountNumberAsync(clientId);
+
+            var newAccount = new Account
+            {
+                ClientId = clientId,
+                CurrencyId = currencyId,
+                StatusId = 1,
+                AccountNumber = accountNumber,
+                Balance = 0m,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            // Сохраняем через репозиторий
+            await _accountRepository.CreateAccountAsync(newAccount);
+
+            return accountNumber;
+        }
+
+        private async Task<string> GenerateAccountNumberAsync(int clientId)
+        {
+            // Формат: ACC-{ClientId}-{Currency}-{RandomNumber}
+            var random = new Random();
+            string randomPart = random.Next(1000, 9999).ToString();
+
+            // Генерируем уникальный номер
+            string accountNumber;
+            int attempts = 0;
+
+            do
+            {
+                accountNumber = $"ACC-{clientId}-{randomPart}-{DateTime.UtcNow.Ticks % 10000}";
+                attempts++;
+
+                if (attempts > 10)
+                {
+                    // Если не можем сгенерировать уникальный номер за 10 попыток
+                    accountNumber = $"ACC-{clientId}-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
+                }
+            }
+            while (await _accountRepository.AccountNumberExistsAsync(accountNumber) && attempts <= 10);
+
+            return accountNumber;
         }
     }
 }

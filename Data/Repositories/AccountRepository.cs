@@ -213,4 +213,17 @@ public class AccountRepository : IAccountRepository
 
         return transactionType.TransactionTypeId;
     }
+
+    public async Task CreateAccountAsync(Account account)
+    {
+        _context.Accounts.Add(account);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<bool> AccountNumberExistsAsync(string accountNumber)
+    {
+        return await _context.Accounts
+            .AsNoTracking()
+            .AnyAsync(a => a.AccountNumber == accountNumber);
+    }
 }

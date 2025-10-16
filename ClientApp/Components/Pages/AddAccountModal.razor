@@ -1,0 +1,131 @@
+﻿@using Data.DTOs
+@using Data.Models
+@inject IAccountService AccountService
+@inject ICurrencyService CurrencyService
+@rendermode InteractiveServer
+
+@if (IsOpen)
+{
+    <div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog">
+            <div class="modal-content p-3">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Account</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    <EditForm Model="@model" OnValidSubmit="HandleValidSubmit">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label class="form-label">Select Currency</label>
+                            <select class="form-select" @bind="model.CurrencyId">
+                                <option value="0">-- Select Currency --</option>
+                                @foreach (var currency in AvailableCurrencies)
+                                {
+                                    <option value="@currency.CurrencyId">@currency.CurrencyCode - @currency.CurrencyName</option>
+                                }
+                            </select>
+                            <ValidationMessage For="@(() => model.CurrencyId)" />
+                        </div>
+
+                        <div class="alert alert-info">
+                            <small>
+                                <strong>Note:</strong> The account will be created with an initial balance of 0.00.
+                                Account number will be generated automatically.
+                            </small>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(errorMessage))
+                        {
+                            <div class="alert alert-danger py-2">@errorMessage</div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(successMessage))
+                        {
+                            <div class="alert alert-success py-2">@successMessage</div>
+                        }
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary me-2" disabled="@isLoading">
+                                @(isLoading ? "Creating..." : "Create Account")
+                            </button>
+                            <button type="button" class="btn btn-secondary" @onclick="CloseModal">
+                                Cancel
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int ClientId { get; set; }
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnSuccess { get; set; }
+
+    private CreateAccountDto model = new();
+    private bool isLoading;
+    private string? errorMessage;
+    private string? successMessage;
+
+    private List<Currency> AvailableCurrencies = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!IsOpen) return;
+
+        // Сброс состояния при открытии
+        isLoading = false;
+        errorMessage = null;
+        successMessage = null;
+        model = new CreateAccountDto();
+
+        // Загружаем валюты
+        AvailableCurrencies = await CurrencyService.GetAllAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (model.CurrencyId == 0)
+        {
+            errorMessage = "Please select a currency.";
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            string accountNumber = await AccountService.CreateAccountAsync(ClientId, model.CurrencyId);
+
+            successMessage = $"Account {accountNumber} created successfully!";
+
+            await Task.Delay(1500); // Показываем сообщение об успехе
+
+            await OnSuccess.InvokeAsync();
+            await CloseModal();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task CloseModal()
+    {
+        model = new CreateAccountDto();
+        errorMessage = null;
+        successMessage = null;
+        await OnClose.InvokeAsync();
+    }
+}
