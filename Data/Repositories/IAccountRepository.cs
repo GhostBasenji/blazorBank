@@ -17,4 +17,5 @@ public interface IAccountRepository
     Task<bool> AccountNumberExistsAsync(string accountNumber);
 
     Task CreateAccountAsync(Account account);
+    Task<Currency?> GetCurrencyByIdAsync(int currencyId);
 }
