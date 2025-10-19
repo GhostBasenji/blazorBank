@@ -15,81 +15,89 @@
 {
     <p>Loading account details...</p>
 }
-else if (accounts is null || accounts.Count == 0)
-{
-    <p>No account information found.</p>
-}
 else
 {
+    <!-- Кнопка Add Account всегда видна -->
     <div class="d-flex justify-content-between mb-3">
-        <!-- Кнопка Add Account слева -->
         <div>
             <button class="btn btn-success" @onclick="ShowAddAccountModal">
                 <span class="bi bi-plus-circle"></span> Add Account
             </button>
         </div>
 
-        <!-- Поиск справа -->
-        <div class="d-flex">
-            <InputText @bind-Value="searchText" placeholder="Enter account number..." class="form-control me-2" style="width: 250px;" />
-            <button class="btn btn-primary" @onclick="OnSearch">Search</button>
-            <button class="btn btn-secondary ms-2" @onclick="OnReset">Reset</button>
-        </div>
+        @if (accounts != null && accounts.Count > 0)
+        {
+            <!-- Поиск показываем только если есть счета -->
+            <div class="d-flex">
+                <InputText @bind-Value="searchText" placeholder="Enter account number..." class="form-control me-2" style="width: 250px;" />
+                <button class="btn btn-primary" @onclick="OnSearch">Search</button>
+                <button class="btn btn-secondary ms-2" @onclick="OnReset">Reset</button>
+            </div>
+        }
     </div>
 
-    <div class="table-container mt-3">
-        @if (sortedAccounts is null || sortedAccounts.Count == 0)
-        {
-            <p>No accounts found</p>
-        }
-        else
-        {
-            <table class="table custom-table text-center align-middle">
-                <thead>
-                    <tr>
-                        <th @onclick="SortByAccountNumber" style="cursor:pointer;">
-                            Account No.
-                            @if (sortAscending)
-                            {
-                                <span>&uarr;</span>
-                            }
-                            else
-                            {
-                                <span>&darr;</span>
-                            }
-                        </th>
-                        <th>Client name</th>
-                        <th>Status</th>
-                        <th>Balance</th>
-                        <th>Created date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var acc in sortedAccounts)
-                    {
+    @if (accounts is null || accounts.Count == 0)
+    {
+        <div class="alert alert-info mt-3">
+            <p class="mb-0"><strong>Welcome!</strong> You don't have any accounts yet. Click "Add Account" button to create your first account.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-container mt-3">
+            @if (sortedAccounts is null || sortedAccounts.Count == 0)
+            {
+                <p>No accounts found</p>
+            }
+            else
+            {
+                <table class="table custom-table text-center align-middle">
+                    <thead>
                         <tr>
-                            <td>@acc.AccountNumber</td>
-                            <td class="text-primary fw-medium">@acc.FullName</td>
-                            <td>
-                                <span class="badge bg-light text-dark border px-3 py-1 rounded-pill shadow-sm">@acc.Status</span>
-                            </td>
-                            <td>@acc.Balance?.ToString("C")</td>
-                            <td>@acc.CreatedAt?.ToString("yyyy-MM-dd")</td>
-                            <td>
-                                <button class="btn btn-sm btn-primary me-1" @onclick="() => ShowTopUpModal(acc)">
-                                    Top Up
-                                </button>
-                                <button class="btn btn-sm btn-danger" @onclick="() => ShowWithdrawModal(acc)">
-                                    Withdraw
-                                </button>
-                            </td>
+                            <th @onclick="SortByAccountNumber" style="cursor:pointer;">
+                                Account No.
+                                @if (sortAscending)
+                                {
+                                    <span>&uarr;</span>
+                                }
+                                else
+                                {
+                                    <span>&darr;</span>
+                                }
+                            </th>
+                            <th>Client name</th>
+                            <th>Status</th>
+                            <th>Balance</th>
+                            <th>Created date</th>
+                            <th>Actions</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
-        }
-    </div>
+                    </thead>
+                    <tbody>
+                        @foreach (var acc in sortedAccounts)
+                        {
+                            <tr>
+                                <td>@acc.AccountNumber</td>
+                                <td class="text-primary fw-medium">@acc.FullName</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border px-3 py-1 rounded-pill shadow-sm">@acc.Status</span>
+                                </td>
+                                <td>@acc.Balance?.ToString("C")</td>
+                                <td>@acc.CreatedAt?.ToString("yyyy-MM-dd")</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary me-1" @onclick="() => ShowTopUpModal(acc)">
+                                        Top Up
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" @onclick="() => ShowWithdrawModal(acc)">
+                                        Withdraw
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    }
 }
 
 <!-- Таблица последних транзакций -->
