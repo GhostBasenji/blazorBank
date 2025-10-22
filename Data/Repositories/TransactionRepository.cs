@@ -18,6 +18,7 @@ namespace Data.Repositories
             return await _context.Transactions
                 .AsNoTracking()
                 .Include(t => t.Account)
+                .ThenInclude(a => a.CurrencyNavigation)
                 .Include(t => t.TransactionType)
                 .Where(t => t.Account.ClientId == clientId)
                 .OrderByDescending(t => t.TransactionDate)
@@ -26,6 +27,7 @@ namespace Data.Repositories
                 {
                     TransactionId = t.TransactionId,
                     AccountNumber = t.Account.AccountNumber ?? "",
+                    AccountCurrency = t.Account.CurrencyNavigation.CurrencyCode,
                     TransactionType = t.TransactionType.TypeName,
                     Amount = t.Amount,
                     TransactionDate = t.TransactionDate,
@@ -39,6 +41,7 @@ namespace Data.Repositories
             return await _context.Transactions
                 .AsNoTracking()
                 .Include(t => t.Account)
+                .ThenInclude(a => a.CurrencyNavigation)
                 .Include(t => t.TransactionType)
                 .Where(t => t.Account.ClientId == clientId)
                 .OrderByDescending(t => t.TransactionDate)
@@ -46,6 +49,7 @@ namespace Data.Repositories
                 {
                     TransactionId = t.TransactionId,
                     AccountNumber = t.Account.AccountNumber ?? "",
+                    AccountCurrency = t.Account.CurrencyNavigation.CurrencyCode,
                     TransactionType = t.TransactionType.TypeName,
                     Amount = t.Amount,
                     TransactionDate = t.TransactionDate,
