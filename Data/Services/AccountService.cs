@@ -61,12 +61,12 @@ namespace Data.Services
             await _accountRepository.WithdrawAccountAsync(accountId, finalAmount);
         }
 
-        public async Task TransferAsync(int fromAccountId, int toAccountId, decimal amount)
+        public async Task TransferAsync(int fromAccountId, int toAccountId, decimal amount, string? currencyCode = null)
         {
             if (amount <= 0)
                 throw new ArgumentException("Amount must be greater than zero.", nameof(amount));
 
-            await _accountRepository.TransferAsync(fromAccountId, toAccountId, amount);
+            await _accountRepository.TransferAsync(fromAccountId, toAccountId, amount, currencyCode);
         }
 
         public async Task<string> CreateAccountAsync(int clientId, int currencyId)

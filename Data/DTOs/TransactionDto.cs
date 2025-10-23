@@ -7,6 +7,8 @@
         public string AccountCurrency { get; set; } = null!;
         public string TransactionType { get; set; } = null!;
         public decimal Amount { get; set; }
+        public decimal OriginalAmount { get; set; }
+        public string OriginalCurrency { get; set; } = null!;
         public DateTime? TransactionDate { get; set; }
         public string? Description { get; set; }
 

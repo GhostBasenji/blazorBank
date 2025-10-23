@@ -11,11 +11,11 @@ public interface IAccountRepository
     Task TopUpAccountAsync(int accountId, decimal amount);
     Task WithdrawAccountAsync(int accountId, decimal amount);
 
-    Task TransferAsync(int fromAccountId, int toAccountId, decimal amount);
-
     Task<Account?> GetAccountByIdAsync(int accountId);
     Task<bool> AccountNumberExistsAsync(string accountNumber);
 
     Task CreateAccountAsync(Account account);
     Task<Currency?> GetCurrencyByIdAsync(int currencyId);
+
+    Task TransferAsync(int fromAccountId, int toAccountId, decimal amount, string? currencyCode = null);
 }

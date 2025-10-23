@@ -97,6 +97,8 @@ public class AccountRepository : IAccountRepository
             AccountId = accountId,
             TransactionTypeId = topUpTypeId,
             Amount = amount,
+            OriginalAmount = amount,
+            OriginalCurrencyId = account.CurrencyId,
             TransactionDate = DateTime.UtcNow,
             Description = "Account top-up"
         };
@@ -127,6 +129,8 @@ public class AccountRepository : IAccountRepository
             AccountId = accountId,
             TransactionTypeId = withdrawalTypeId,
             Amount = amount,
+            OriginalAmount = amount,
+            OriginalCurrencyId = account.CurrencyId,
             TransactionDate = DateTime.UtcNow,
             Description = "Account withdrawal"
         };
@@ -135,7 +139,7 @@ public class AccountRepository : IAccountRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task TransferAsync(int fromAccountId, int toAccountId, decimal amount)
+    public async Task TransferAsync(int fromAccountId, int toAccountId, decimal amount, string? currencyCode = null)
     {
         if (amount <= 0)
             throw new ArgumentException("Amount must be greater than zero.", nameof(amount));
@@ -154,9 +158,46 @@ public class AccountRepository : IAccountRepository
         if (toAccount == null)
             throw new InvalidOperationException($"Destination account with ID {toAccountId} not found.");
 
+        // Определяем валюту операции
+        Currency operationCurrency;
+        if (!string.IsNullOrEmpty(currencyCode))
+        {
+            // Если указана валюта операции - используем её
+            operationCurrency = await _context.Currencies
+                .FirstOrDefaultAsync(c => c.CurrencyCode == currencyCode && c.IsActive);
+
+            if (operationCurrency == null)
+                throw new InvalidOperationException($"Currency '{currencyCode}' not found.");
+        }
+        else
+        {
+            // Если не указана - используем валюту исходного счёта
+            operationCurrency = fromAccount.CurrencyNavigation;
+        }
+
+        // Конвертируем сумму операции в валюту исходного счёта
+        decimal amountInFromCurrency = amount;
+        if (operationCurrency.CurrencyCode != fromAccount.CurrencyNavigation.CurrencyCode)
+        {
+            amountInFromCurrency = await ConvertCurrencyAsync(
+                amount,
+                operationCurrency.CurrencyId,
+                fromAccount.CurrencyId);
+        }
+
         var fromBalance = fromAccount.Balance ?? 0m;
-        if (fromBalance < amount)
+        if (fromBalance < amountInFromCurrency)
             throw new InvalidOperationException("Insufficient funds in source account.");
+
+        // Конвертируем сумму в валюту целевого счёта
+        decimal amountInToCurrency = amount;
+        if (operationCurrency.CurrencyCode != toAccount.CurrencyNavigation.CurrencyCode)
+        {
+            amountInToCurrency = await ConvertCurrencyAsync(
+                amount,
+                operationCurrency.CurrencyId,
+                toAccount.CurrencyId);
+        }
 
         var transferOutTypeId = await GetTransactionTypeIdAsync("Transfer Out");
         var transferInTypeId = await GetTransactionTypeIdAsync("Transfer In");
@@ -166,70 +207,38 @@ public class AccountRepository : IAccountRepository
         try
         {
             // Снимаем деньги с исходного счета
-            fromAccount.Balance = fromBalance - amount;
+            fromAccount.Balance = fromBalance - amountInFromCurrency;
 
-            // Конвертируем сумму, если валюты разные
-            decimal convertedAmount = amount;
+            // Зачисляем на целевой счет
+            toAccount.Balance = (toAccount.Balance ?? 0m) + amountInToCurrency;
 
-            if (fromAccount.CurrencyNavigation.CurrencyCode != toAccount.CurrencyNavigation.CurrencyCode)
-            {
-                // Получаем курс обмена
-                var exchangeRate = await _context.ExchangeRates
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(r =>
-                        r.BaseCurrencyId == fromAccount.CurrencyId &&
-                        r.TargetCurrencyId == toAccount.CurrencyId);
-
-                if (exchangeRate != null)
-                {
-                    convertedAmount = amount * exchangeRate.Rate;
-                }
-                else
-                {
-                    // Пробуем обратный курс
-                    var reverseRate = await _context.ExchangeRates
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(r =>
-                            r.BaseCurrencyId == toAccount.CurrencyId &&
-                            r.TargetCurrencyId == fromAccount.CurrencyId);
-
-                    if (reverseRate != null)
-                    {
-                        convertedAmount = amount / reverseRate.Rate;
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException(
-                            $"Exchange rate not found for conversion from {fromAccount.CurrencyNavigation.CurrencyCode} to {toAccount.CurrencyNavigation.CurrencyCode}. " +
-                            $"Please add the exchange rate in admin panel.");
-                    }
-                }
-            }
-
-            // Зачисляем конвертированную сумму на целевой счет
-            toAccount.Balance = (toAccount.Balance ?? 0m) + convertedAmount;
-
+            // Транзакция списания
             var withdrawTransaction = new Transaction
             {
                 AccountId = fromAccountId,
                 TransactionTypeId = transferOutTypeId,
-                Amount = amount,
+                Amount = amountInFromCurrency,
+                OriginalAmount = amount,
+                OriginalCurrencyId = operationCurrency.CurrencyId,
                 TransactionDate = DateTime.UtcNow,
-                Description = $"Transfer to account {toAccount.AccountNumber}" +
-                             (fromAccount.CurrencyNavigation.CurrencyCode != toAccount.CurrencyNavigation.CurrencyCode
-                                 ? $" (converted to {convertedAmount:N2} {toAccount.CurrencyNavigation.CurrencyCode})"
+                Description = $"Transfer to {toAccount.AccountNumber}" +
+                             (operationCurrency.CurrencyCode != fromAccount.CurrencyNavigation.CurrencyCode
+                                 ? $" ({amount:N2} {operationCurrency.CurrencyCode} = {amountInFromCurrency:N2} {fromAccount.CurrencyNavigation.CurrencyCode})"
                                  : "")
             };
 
+            // Транзакция зачисления
             var depositTransaction = new Transaction
             {
                 AccountId = toAccountId,
                 TransactionTypeId = transferInTypeId,
-                Amount = convertedAmount,
+                Amount = amountInToCurrency,
+                OriginalAmount = amount,
+                OriginalCurrencyId = operationCurrency.CurrencyId,
                 TransactionDate = DateTime.UtcNow,
-                Description = $"Transfer from account {fromAccount.AccountNumber}" +
-                             (fromAccount.CurrencyNavigation.CurrencyCode != toAccount.CurrencyNavigation.CurrencyCode
-                                 ? $" ({amount:N2} {fromAccount.CurrencyNavigation.CurrencyCode})"
+                Description = $"Transfer from {fromAccount.AccountNumber}" +
+                             (operationCurrency.CurrencyCode != toAccount.CurrencyNavigation.CurrencyCode
+                                 ? $" ({amount:N2} {operationCurrency.CurrencyCode} = {amountInToCurrency:N2} {toAccount.CurrencyNavigation.CurrencyCode})"
                                  : "")
             };
 
@@ -244,6 +253,33 @@ public class AccountRepository : IAccountRepository
             await transaction.RollbackAsync();
             throw;
         }
+    }
+
+    // Вспомогательный метод для конвертации
+    private async Task<decimal> ConvertCurrencyAsync(decimal amount, int fromCurrencyId, int toCurrencyId)
+    {
+        if (fromCurrencyId == toCurrencyId)
+            return amount;
+
+        var exchangeRate = await _context.ExchangeRates
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r =>
+                r.BaseCurrencyId == fromCurrencyId &&
+                r.TargetCurrencyId == toCurrencyId);
+
+        if (exchangeRate != null)
+            return amount * exchangeRate.Rate;
+
+        var reverseRate = await _context.ExchangeRates
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r =>
+                r.BaseCurrencyId == toCurrencyId &&
+                r.TargetCurrencyId == fromCurrencyId);
+
+        if (reverseRate != null)
+            return amount / reverseRate.Rate;
+
+        throw new InvalidOperationException($"Exchange rate not found between currencies.");
     }
 
     private async Task<int> GetTransactionTypeIdAsync(string typeName)

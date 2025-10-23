@@ -20,6 +20,7 @@ namespace Data.Repositories
                 .Include(t => t.Account)
                 .ThenInclude(a => a.CurrencyNavigation)
                 .Include(t => t.TransactionType)
+                .Include(t => t.OriginalCurrency)
                 .Where(t => t.Account.ClientId == clientId)
                 .OrderByDescending(t => t.TransactionDate)
                 .Take(count)
@@ -30,6 +31,8 @@ namespace Data.Repositories
                     AccountCurrency = t.Account.CurrencyNavigation.CurrencyCode,
                     TransactionType = t.TransactionType.TypeName,
                     Amount = t.Amount,
+                    OriginalAmount = t.OriginalAmount,
+                    OriginalCurrency = t.OriginalCurrency.CurrencyCode,
                     TransactionDate = t.TransactionDate,
                     Description = t.Description
                 })
@@ -43,6 +46,7 @@ namespace Data.Repositories
                 .Include(t => t.Account)
                 .ThenInclude(a => a.CurrencyNavigation)
                 .Include(t => t.TransactionType)
+                .Include(t => t.OriginalCurrency)
                 .Where(t => t.Account.ClientId == clientId)
                 .OrderByDescending(t => t.TransactionDate)
                 .Select(t => new TransactionDto
@@ -52,6 +56,8 @@ namespace Data.Repositories
                     AccountCurrency = t.Account.CurrencyNavigation.CurrencyCode,
                     TransactionType = t.TransactionType.TypeName,
                     Amount = t.Amount,
+                    OriginalAmount = t.OriginalAmount,
+                    OriginalCurrency = t.OriginalCurrency.CurrencyCode,
                     TransactionDate = t.TransactionDate,
                     Description = t.Description
                 })

@@ -164,7 +164,8 @@
                 await AccountService.TransferAsync(
                     fromAccountId: SelectedAccountId.Value,
                     toAccountId: Account.AccountId,
-                    amount: model.Amount);
+                    amount: model.Amount,
+                    currencyCode: selectedCurrency.CurrencyCode);
             }
 
             await OnSuccess.InvokeAsync();
