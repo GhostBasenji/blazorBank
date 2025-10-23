@@ -61,18 +61,18 @@ namespace Data.Services
             await _accountRepository.WithdrawAccountAsync(accountId, finalAmount);
         }
 
-        public async Task TransferAsync(int fromAccountId, int toAccountId, decimal amount)
+        public async Task TransferAsync(int fromAccountId, int toAccountId, decimal amount, string? currencyCode = null)
         {
             if (amount <= 0)
                 throw new ArgumentException("Amount must be greater than zero.", nameof(amount));
 
-            await _accountRepository.TransferAsync(fromAccountId, toAccountId, amount);
+            await _accountRepository.TransferAsync(fromAccountId, toAccountId, amount, currencyCode);
         }
 
         public async Task<string> CreateAccountAsync(int clientId, int currencyId)
         {
-            // Генерируем уникальный номер счета
-            string accountNumber = await GenerateAccountNumberAsync(clientId);
+            // Генерируем уникальный номер счета с учетом валюты
+            string accountNumber = await GenerateAccountNumberAsync(clientId, currencyId); // <- передаем currencyId
 
             var newAccount = new Account
             {
@@ -84,32 +84,35 @@ namespace Data.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            // Сохраняем через репозиторий
             await _accountRepository.CreateAccountAsync(newAccount);
 
             return accountNumber;
         }
 
-        private async Task<string> GenerateAccountNumberAsync(int clientId)
+        private async Task<string> GenerateAccountNumberAsync(int clientId, int currencyId)
         {
-            // Формат: ACC-{ClientId}-{Currency}-{RandomNumber}
-            var random = new Random();
-            string randomPart = random.Next(1000, 9999).ToString();
+            // Получаем код валюты
+            var currency = await _accountRepository.GetCurrencyByIdAsync(currencyId);
+            string currencyCode = currency?.CurrencyCode ?? "XXX";
 
-            // Генерируем уникальный номер
+            var random = new Random();
+            string randomPart = random.Next(100000, 999999).ToString();
+
+            // Формат: ACC-{CurrencyCode}-{ClientId}-{RandomNumber}
             string accountNumber;
             int attempts = 0;
 
             do
             {
-                accountNumber = $"ACC-{clientId}-{randomPart}-{DateTime.UtcNow.Ticks % 10000}";
+                accountNumber = $"ACC-{currencyCode}-{clientId}-{randomPart}";
                 attempts++;
 
                 if (attempts > 10)
                 {
-                    // Если не можем сгенерировать уникальный номер за 10 попыток
-                    accountNumber = $"ACC-{clientId}-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
+                    accountNumber = $"ACC-{currencyCode}-{clientId}-{Guid.NewGuid().ToString().Substring(0, 6).ToUpper()}";
                 }
+
+                randomPart = random.Next(100000, 999999).ToString();
             }
             while (await _accountRepository.AccountNumberExistsAsync(accountNumber) && attempts <= 10);
 

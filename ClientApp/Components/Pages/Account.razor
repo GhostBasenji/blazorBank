@@ -81,7 +81,7 @@ else
                                 <td>
                                     <span class="badge bg-light text-dark border px-3 py-1 rounded-pill shadow-sm">@acc.Status</span>
                                 </td>
-                                <td>@acc.Balance?.ToString("C")</td>
+                                <td>@acc.FormattedBalance</td>
                                 <td>@acc.CreatedAt?.ToString("yyyy-MM-dd")</td>
                                 <td>
                                     <button class="btn btn-sm btn-primary me-1" @onclick="() => ShowTopUpModal(acc)">
@@ -140,7 +140,7 @@ else
                             </span>
                         </td>
                         <td class="@(transaction.TransactionType == "TopUp" || transaction.TransactionType == "Transfer In" ? "text-success" : "text-danger")">
-                            @(transaction.TransactionType == "TopUp" || transaction.TransactionType == "Transfer In" ? "+" : "-")@transaction.Amount.ToString("C")
+                            @transaction.FormattedAmount
                         </td>
                         <td>@transaction.Description</td>
                     </tr>

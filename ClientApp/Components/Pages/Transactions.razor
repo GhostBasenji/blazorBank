@@ -50,7 +50,7 @@ else
                             </span>
                         </td>
                         <td class="fw-bold @(transaction.TransactionType == "TopUp" || transaction.TransactionType == "Transfer In" ? "text-success" : "text-danger")">
-                            @(transaction.TransactionType == "TopUp" || transaction.TransactionType == "Transfer In" ? "+" : "-")@transaction.Amount.ToString("C")
+                            @transaction.FormattedAmount
                         </td>
                         <td class="text-muted">@transaction.Description</td>
                     </tr>
